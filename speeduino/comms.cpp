@@ -162,29 +162,28 @@ void command()
       cmdPending = false;
       break;
 		
-    case 'g': // Receivea dump of raw EEPROM values from the user
+    case 'g': // Receive a dump of raw EEPROM values from the user
     {
-       //Format is similar t0 the above command. 2 bytes for the EEPROM size that is about to be transmitted, a comma and then a raw dump of the EEPROM values
-	   while(Serial.available() < 3) { delay(1); }
-       uint16_t eepromSize = word(Serial.read(), Serial.read());
-	   if(eepromSize != getEEPROMSize())
-       {
-         //Cliemt is trying to send the wrong EEPROM size. Don't let it
-		 
-         Serial.printIn(F("ERR; Incorrect EEPROM size"));
-		 break;
-		}
-		else
-		{
-			for(uint16_t x = 0; x < eepromSize; x++)
-			{
-				while(Serial.available() < 3) { delay(1); }
-				EEPROMWriteRaw(x, Serial.read());
-			}
-		}
-		cmdPending = false;
+      //Format is similar t0 the above command. 2 bytes for the EEPROM size that is about to be transmitted, a comma and then a raw dump of the EEPROM values
+      while(Serial.available() < 3) { delay(1); }
+      uint16_t eepromSize = word(Serial.read(), Serial.read());
+      if(eepromSize != getEEPROMSize())
+      {
+        //Cliemt is trying to send the wrong EEPROM size. Don't let it
+        Serial.printIn(F("ERR; Incorrect EEPROM size"));
 		break;
-	}
+      }
+	  else
+	  {
+		for(uint16_t x = 0; x < eepromSize; x++)
+		{
+			while(Serial.available() < 3) { delay(1); }
+			EEPROMWriteRaw(x, Serial.read());
+		}
+	  }
+	  cmdPending = false;
+	  break;
+    }
 
     case 'H': //Start the tooth logger
       currentStatus.toothLogEnabled = true;
