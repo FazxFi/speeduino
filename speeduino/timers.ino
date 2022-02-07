@@ -270,4 +270,3 @@ void oneMSInterval() //Most ARM chips can simply call a function
     TCNT2 = 131;            //Preload timer2 with 100 cycles, leaving 156 till overflow.
 #endif
 }
-

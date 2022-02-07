@@ -230,6 +230,15 @@
 #define BIT_STATUS4_UNUSED7       6
 #define BIT_STATUS4_UNUSED8       7
 
+#define BIT_AIRCON_REQUEST        0 //Indicates whether the A/C button is pressed
+#define BIT_AIRCON_COMPRESSOR     1 //Indicates whether the A/C compressor is running
+#define BIT_AIRCON_RPM_LOCKOUT    2 //Indicates the A/C is locked out due to the RPM being too high/low, or the post-high/post-low-RPM "stand-down" lockout period
+#define BIT_AIRCON_TPS_LOCKOUT    3 //Indicates the A/C is locked out due to high TPS, or the post-high-TPS "stand-down" lockout period
+#define BIT_AIRCON_TURNING_ON     4 //Indicates the A/C request is on (i.e. A/C button pressed), the lockouts are off, however the start delay has not yet elapsed. This gives the idle up time to kick in before the compressor.
+#define BIT_AIRCON_CLT_LOCKOUT    5 //Indicates the A/C is locked out either due to high coolant temp.
+#define BIT_AIRCON_UNUSED7        6
+#define BIT_AIRCON_UNUSED8        7
+
 #define VALID_MAP_MAX 1022 //The largest ADC value that is valid for the MAP sensor
 #define VALID_MAP_MIN 2 //The smallest ADC value that is valid for the MAP sensor
 
@@ -605,7 +614,7 @@ extern volatile byte LOOP_TIMER;
 //These functions all do checks on a pin to determine if it is already in use by another (higher importance) function
 #define pinIsInjector(pin)  ( ((pin) == pinInjector1) || ((pin) == pinInjector2) || ((pin) == pinInjector3) || ((pin) == pinInjector4) || ((pin) == pinInjector5) || ((pin) == pinInjector6) || ((pin) == pinInjector7) || ((pin) == pinInjector8) )
 #define pinIsIgnition(pin)  ( ((pin) == pinCoil1) || ((pin) == pinCoil2) || ((pin) == pinCoil3) || ((pin) == pinCoil4) || ((pin) == pinCoil5) || ((pin) == pinCoil6) || ((pin) == pinCoil7) || ((pin) == pinCoil8) )
-#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
+#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinAirConComp) || ((pin) == pinAirConFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
 #define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinO2) || ((pin) == pinBat) )
 #define pinIsUsed(pin)      ( pinIsSensor((pin)) || pinIsOutput((pin)) || pinIsReserved((pin)) )
 
@@ -731,6 +740,7 @@ struct statuses {
   long vvt2Duty; //Has to be a long for PID calcs (CL VVT control)
   byte outputsStatus;
   byte TS_SD_Status; //TunerStudios SD card status
+  byte airConStatus; // The air conditioning status bits (see BIT_AIRCON_* defines at the top of this file.)
 };
 
 /** Page 2 of the config - mostly variables that are required for fuel.
@@ -1152,24 +1162,29 @@ struct config9 {
   byte boostByGear6;
 
   byte PWMFanDuty[4];
-  byte unused10_166;
-  byte unused10_167;
-  byte unused10_168;
-  byte unused10_169;
-  byte unused10_170;
-  byte unused10_171;
-  byte unused10_172;
-  byte unused10_173;
-  byte unused10_174;
-  byte unused10_175;
-  byte unused10_176;
-  byte unused10_177;
-  byte unused10_178;
-  byte unused10_179;
-  byte unused10_180;
-  byte unused10_181;
-  byte unused10_182;
-  byte unused10_183;
+  
+  //Byte 162 - Air conditioning binary points
+  byte airConEnable : 1;
+  byte airConCompPol : 1;
+  byte airConReqPol : 1;
+  byte airConTurnsFanOn : 1;
+  byte airConFanEnabled : 1;
+  byte airConFanPol : 3;
+  
+  //Bytes 163-173 - Air conditioning analog points
+  byte airConCompPin;
+  byte airConReqPin;
+  byte airConTPSCut;
+  byte airConMinRPMdiv100;
+  byte airConMaxRPMdiv100;
+  byte airConClTempCut;
+  byte airConIdleSteps;
+  byte airConTPSCutTime;
+  byte airConCompOnDelay;
+  byte airConAfterStartDelay;
+  byte airConRPMCutTime;
+  byte airConFanPin;
+  
   byte unused10_184;
   byte unused10_185;
   byte unused10_186;
@@ -1390,7 +1405,7 @@ struct config13 {
   int16_t secondTarget[8];///< second target value to compare with bitwise op
   //89bytes
   struct cmpOperation operation[8]; ///< I/O variable comparison operations (See @ref cmpOperation)
-
+  
   uint16_t candID[8]; ///< Actual CAN ID need 16bits, this is a placeholder
 
   byte unused12_106_116[10];
@@ -1484,6 +1499,9 @@ extern byte pinBoost;
 extern byte pinVVT_1;		// vvt output 1
 extern byte pinVVT_2;		// vvt output 2
 extern byte pinFan;       // Cooling fan output
+extern byte pinAirConComp;    // Air conditioning compressor output
+extern byte pinAirConFan;    // Stand-alone air conditioning fan output
+extern byte pinAirConRequest; // Air conditioning request input
 extern byte pinStepperDir; //Direction pin for the stepper motor driver
 extern byte pinStepperStep; //Step pin for the stepper motor driver
 extern byte pinStepperEnable; //Turning the DRV8825 driver on/off
