@@ -439,8 +439,7 @@ This is so we can use an unsigned byte (0-255) to represent temperature ranges f
 extern const char TSfirmwareVersion[] PROGMEM;
 
 extern const byte data_structure_version; //This identifies the data structure when reading / writing. Now in use: CURRENT_DATA_VERSION (migration on-the fly) ?
-extern FastCRC32 CRC32;
-
+extern FastCRC32 CRC32; //Genaric CRC32 instance for general use in pages etc. Note that the serial comms has its own CRC32 instance
 
 extern struct table3d16RpmLoad fuelTable; //16x16 fuel map
 extern struct table3d16RpmLoad fuelTable2; //16x16 fuel map
@@ -1406,7 +1405,6 @@ struct config13 {
   int16_t secondTarget[8];///< second target value to compare with bitwise op
   //89bytes
   struct cmpOperation operation[8]; ///< I/O variable comparison operations (See @ref cmpOperation)
-  // Byte 90-105
   uint16_t candID[8]; ///< Actual CAN ID need 16bits, this is a placeholder
 
   byte unused12_106_116[10];
