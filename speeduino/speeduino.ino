@@ -278,8 +278,7 @@ void loop()
       //updateFullStatus();
       checkProgrammableIO();
 	  
-	  if( (isEepromWritePending() == true) && (serialReceivePending ==
-	  false) && (deferEEPROMWrite == false)) { writeAllConfig(); } //Check for any outstanding EEPROM write.
+	  if( (isEepromWritePending() == true) && (serialReceivePending == false) && (deferEEPROMWrite == false)) { writeAllConfig(); } //Check for any outstanding EEPROM write.
 
       currentStatus.vss = getSpeed();
       currentStatus.gear = getGear();
@@ -388,7 +387,7 @@ void loop()
     {
       BIT_CLEAR(TIMER_mask, BIT_TIMER_1HZ);
       readBaro(); //Infrequent baro readings are not an issue.
-	  deferEEPROMWrite = false; //Reset the slow EEPROM writes flag so that EEPROM burns will rwturn to normal speed. this is set in NewComms whenever there is a large chunk write to prevent mega2560s halting due to excess EEPROM burn times.
+	  deferEEPROMWrites = false; //Reset the slow EEPROM writes flag so that EEPROM burns will return to normal speed. This is set in NewComms whenever there is a large chunk write to prevent mega2560s halting due to excess EEPROM burn times.
 
       if ( (configPage10.wmiEnabled > 0) && (configPage10.wmiIndicatorEnabled > 0) )
       {
@@ -1544,7 +1543,7 @@ void calculateIgnitionAngles(int dwellAngle)
       else if(configPage4.sparkMode == IGN_MODE_ROTARY)
       {
         byte splitDegrees = 0;
-        splitDegrees = table2D_getValue(&rotarySplitTable,curentStatus.ignLoad);
+        splitDegrees = table2D_getValue(&rotarySplitTable, curentStatus.ignLoad);
 
         //The trailing angles are set relative to the leading ones
         calculateIgnitionAngle3(dwellAngle, splitDegrees);

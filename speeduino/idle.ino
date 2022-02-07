@@ -539,7 +539,7 @@ void idleControl()
         if( (idleCounter & 31) == 1) { idlePID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD); } //This only needs to be run very infrequently, once every 32 calls to idleControl(). This is approx. once per second
 
         PID_computed = idlePID.Compute(true);
-		long TEMP_idle_pwm_target_value;
+        long TEMP_idle_pwm_target_value;
         if(PID_computed == true)
         {
           TEMP_idle_pwm_target_value = idle_pid_target_value;
@@ -576,6 +576,7 @@ void idleControl()
           BIT_SET(currentStatus.spark, BIT_SPARK_IDLE); //Turn the idle control flag on
           currentStatus.idleLoad = ((unsigned long)(idle_pwm_target_value * 100UL) / idle_pwm_max_count);
 		  if(currentStatus.idleUpActive == true) { currentStatus.idleDuty += configPage2.idleUpAdder; } //Add Idle Up amount if active
+
         }
         idleCounter++;
       }  
