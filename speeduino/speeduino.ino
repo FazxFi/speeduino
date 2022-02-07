@@ -277,7 +277,7 @@ void loop()
       BIT_CLEAR(TIMER_mask, BIT_TIMER_10HZ);
       //updateFullStatus();
       checkProgrammableIO();
-	  
+
 	  if( (isEepromWritePending() == true) && (serialReceivePending == false) && (deferEEPROMWrites == false)) { writeAllConfig(); } //Check for any outstanding EEPROM writes.
 
       currentStatus.vss = getSpeed();
@@ -1543,7 +1543,7 @@ void calculateIgnitionAngles(int dwellAngle)
       else if(configPage4.sparkMode == IGN_MODE_ROTARY)
       {
         byte splitDegrees = 0;
-        splitDegrees = table2D_getValue(&rotarySplitTable, curentStatus.ignLoad);
+        splitDegrees = table2D_getValue(&rotarySplitTable, currentStatus.ignLoad);
 
         //The trailing angles are set relative to the leading ones
         calculateIgnitionAngle3(dwellAngle, splitDegrees);
