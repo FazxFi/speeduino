@@ -205,7 +205,7 @@ void loop()
       ignitionOn = false;
       fuelOn = false;
       if (fpPrimed == true) { FUEL_PUMP_OFF(); currentStatus.fuelPumpOn = false; } //Turn off the fuel pump, but only if the priming is complete
-      if (configPage6.iacPWMrun == false) { disableIdle(); } //Turn off the idle PWM
+      if (configPage9.idleEngOff) { disableIdle(); } //Turn off the idle PWM
       BIT_CLEAR(currentStatus.engine, BIT_ENGINE_CRANK); //Clear cranking bit (Can otherwise get stuck 'on' even with 0 rpm)
       BIT_CLEAR(currentStatus.engine, BIT_ENGINE_WARMUP); //Same as above except for WUE
       BIT_CLEAR(currentStatus.engine, BIT_ENGINE_RUN); //Same as above except for RUNNING status
@@ -382,6 +382,8 @@ void loop()
           } //Channel type
         } //For loop going through each channel
       } //aux channels are enabled
+
+      if( (configPage6.iacAlgorithm == IAC_ALGORITHM_NONE) || (configPage6.iacAlgorithm == IAC_ALGORITHM_ONOFF) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_CL) ) { idleControl(); } //Perform any idle related actions. Even at higher frequencies, running 4x per second is sufficient.
     } //4Hz timer
     if (BIT_CHECK(LOOP_TIMER, BIT_TIMER_1HZ)) //Once per second)
     {
@@ -411,9 +413,10 @@ void loop()
 
     if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL)
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB))
     {
-      idleControl(); //Run idlecontrol every loop for stepper idle.
+      idleControl(); //Run idlecontrol every loop for stepper and vw idle method idle.
     }
 
     

@@ -763,7 +763,7 @@ int8_t correctionIdleAdvance(int8_t advance)
     if(idleRPMdelta > 100) { idleRPMdelta = 100; }
     if(idleRPMdelta < 0) { idleRPMdelta = 0; }
     if( (currentStatus.RPMdiv100 < configPage2.idleAdvRPM) && ((configPage2.vssMode == 0) || (currentStatus.vss < configPage2.idleAdvVss))
-    && (((configPage2.idleAdvAlgorithm == 0) && (currentStatus.TPS < configPage2.idleAdvTPS)) || ((configPage2.idleAdvAlgorithm == 1) && (currentStatus.CTPSActive == 1))) ) // closed throttle position sensor (CTPS) based idle state
+    && (((configPage2.idleAdvAlgorithm == 0) && (currentStatus.TPS < configPage2.idleAdvTPS)) || ((configPage2.idleAdvAlgorithm == 1) && (currentStatus.ctpsActive == 1))) // closed throttle position sensor (CTPS) based idle state
     {
       if( (runSecsX10 - idleAdvStart) >= configPage9.idleAdvStartDelay )
       {

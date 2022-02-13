@@ -615,7 +615,7 @@ extern volatile byte LOOP_TIMER;
 #define pinIsInjector(pin)  ( ((pin) == pinInjector1) || ((pin) == pinInjector2) || ((pin) == pinInjector3) || ((pin) == pinInjector4) || ((pin) == pinInjector5) || ((pin) == pinInjector6) || ((pin) == pinInjector7) || ((pin) == pinInjector8) )
 #define pinIsIgnition(pin)  ( ((pin) == pinCoil1) || ((pin) == pinCoil2) || ((pin) == pinCoil3) || ((pin) == pinCoil4) || ((pin) == pinCoil5) || ((pin) == pinCoil6) || ((pin) == pinCoil7) || ((pin) == pinCoil8) )
 #define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinAirConComp) || ((pin) == pinAirConFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
-#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinO2) || ((pin) == pinBat) )
+#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinITPS) || ((pin) == pinO2) || ((pin) == pinBat) )
 #define pinIsUsed(pin)      ( pinIsSensor((pin)) || pinIsOutput((pin)) || pinIsReserved((pin)) )
 
 /** The status struct with current values for all 'live' variables.
@@ -637,6 +637,8 @@ struct statuses {
   byte baro;   ///< Barometric pressure is simply the inital MAP reading, taken before the engine is running. Alternatively, can be taken from an external sensor
   byte TPS;    /**< The current TPS reading (0% - 100%). Is the tpsADC value after the calibration is applied */
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
+  long ITPS;   /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  byte itpsADC; /**< 0-225 byte representation of the ITPS. Downsampled from the original 10-bit reading, but before any calibration is applied.*/
   byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
   byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
   volatile int rpmDOT; /**< RPM delta over time (RPM increase / s ?) */
@@ -670,10 +672,10 @@ struct statuses {
   byte fuelTempCorrection; /**< Amount of correction being applied to compensate for fuel temperature */
   int8_t flexIgnCorrection;/**< Amount of additional advance being applied based on flex. Note the type as this allows for negative values */
   byte afrTarget;    /**< Current AFR Target looked up from AFR target table (x10 ? See @ref afrTable)*/
-  byte idleDuty;     /**< The current idle duty cycle amount if PWM idle is selected and active */
+  uint16_t idleDuty;     /**< The current idle duty cycle amount if PWM idle is selected and active */
   byte CLIdleTarget; /**< The target idle RPM (when closed loop idle control is active) */
   bool idleUpActive; /**< Whether the externally controlled idle up is currently active */
-  bool CTPSActive;   /**< Whether the externally controlled closed throttle position sensor is currently active */
+  bool ctpsActive;   /**< Whether the externally controlled closed throttle position sensor is currently active */
   volatile byte ethanolPct; /**< Ethanol reading (if enabled). 0 = No ethanol, 100 = pure ethanol. Eg E85 = 85. */
   volatile int8_t fuelTemp;
   unsigned long AEEndTime; /**< The target end time used whenever AE (acceleration enrichment) is turned on */
@@ -862,9 +864,9 @@ struct config2 {
   byte primePulse[4];//Priming pulsewidth values (mS, copied to @ref PrimingPulseTable)
   byte primeBins[4]; //Priming temperatures (source,x-axis)
 
-  byte CTPSPin : 6;
-  byte CTPSPolarity : 1;
-  byte CTPSEnabled : 1;
+  byte ctpsPin : 6;
+  byte ctpsPolarity : 1;
+  byte ctpsEnabled : 1;
 
   byte idleAdvEnabled : 2;
   byte idleAdvAlgorithm : 1;
@@ -872,6 +874,20 @@ struct config2 {
   
   byte idleAdvRPM;
   byte idleAdvTPS;
+
+  byte itpsMin;
+  byte itpsMax;
+  byte itpsPin : 4;
+  byte idleEngOff : 2;
+  byte hbDriver : 2;
+  byte pinIdle1 : 6;
+  byte unused_idle_bits1 : 2;
+  byte pinIdle2 : 6;
+  byte unused_idle_bits2 : 2;
+  byte hbDirPin1 : 6;
+  byte unused_idle_bits3 : 2;
+  byte hbDirPin2 : 6;
+  byte unused_idle_bits4 : 2;
 
   byte injAngRPM[4];
 
@@ -1372,7 +1388,11 @@ struct config10 {
   byte spark2InputPolarity : 1;
   byte spark2InputPullup : 1;
 
-  byte unused11_187_191[2]; //Bytes 187-191
+  //H-Bridge Bytes 190-191
+  uint16_t idleSens;
+  byte  idleIntv;
+
+  //full :(
 
 #if defined(CORE_AVR)
   };
@@ -1475,9 +1495,12 @@ extern byte pinTachOut; //Tacho output
 extern byte pinFuelPump; //Fuel pump on/off
 extern byte pinIdle1; //Single wire idle control
 extern byte pinIdle2; //2 wire idle control (Not currently used)
+extern byte pinHBdir1; //H-bridge Idle direction pin 1
+extern byte pinHBdir2; //H-bridge Idle direction pin 2
 extern byte pinIdleUp; //Input for triggering Idle Up
 extern byte pinIdleUpOutput; //Output that follows (normal or inverted) the idle up pin
 extern byte pinCTPS; //Input for triggering closed throttle state
+extern byte pinITPS; //Input for idle range TPS
 extern byte pinFuel2Input; //Input for switching to the 2nd fuel table
 extern byte pinSpark2Input; //Input for switching to the 2nd ignition table
 extern byte pinSpareTemp1; // Future use only
