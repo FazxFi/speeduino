@@ -52,6 +52,7 @@ struct table2D knockWindowStartTable;
 struct table2D knockWindowDurationTable;
 struct table2D oilPressureProtectTable;
 struct table2D wmiAdvTable; //6 bin wmi correction table for timing advance (2D)
+struct table2D coolantProtectTable;
 struct table2D fanPWMTable;
 
 /// volatile inj*_pin_port and  inj*_pin_mask vars are for the direct port manipulation of the injectors, coils and aux outputs.
@@ -228,9 +229,6 @@ byte pinBoost;
 byte pinVVT_1;     ///< vvt (variable valve timing) output 1
 byte pinVVT_2;     ///< vvt (variable valve timing) output 2
 byte pinFan;       ///< Cooling fan output (on/off? See: auxiliaries.ino)
-byte pinAirConComp;     // Air conditioning compressor output (See: auxiliaries.ino)
-byte pinAirConFan;    // Stand-alone air conditioning fan output (See: auxiliaries.ino)
-byte pinAirConRequest;  // Air conditioning request input (See: auxiliaries.ino)
 byte pinStepperDir; //Direction pin for the stepper motor driver
 byte pinStepperStep; //Step pin for the stepper motor driver
 byte pinStepperEnable; //Turning the DRV8825 driver on/off
