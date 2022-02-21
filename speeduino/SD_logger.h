@@ -3,11 +3,7 @@
 
 #ifdef SD_LOGGING
 
-#ifdef __SD_H__
-  #include <SD.h>
-#else
-  #include "SdFat.h"
-#endif
+#include <SD.h>
 //#include <SdSpiCard.h>
 #include "RingBuf.h"
 
@@ -34,10 +30,8 @@
 
 #define SD_SECTOR_SIZE              512 // Standard SD sector size
 
-#if defined CORE_TEENSY
+#ifdef CORE_TEENSY
     #define SD_CS_PIN BUILTIN_SDCARD
-#elif defined CORE_STM32
-    #define SD_CS_PIN PD2  //CS pin can be pretty much anything, but PD2 is one of the ones left unused from SDIO pins.
 #else
     #define SD_CS_PIN 10 //This is a made up value for now
 #endif

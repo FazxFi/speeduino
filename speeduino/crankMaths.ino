@@ -2,16 +2,6 @@
 #include "crankMaths.h"
 #include "decoders.h"
 #include "timers.h"
-#include "maths.h"
-
-volatile uint16_t timePerDegree;
-volatile uint16_t timePerDegreex16;
-volatile uint16_t degreesPeruSx2048;
-volatile unsigned long degreesPeruSx32768;
-
-//These are only part of the experimental 2nd deriv calcs
-byte deltaToothCount = 0; //The last tooth that was used with the deltaV calc
-int rpmDelta;
 
 /*
 * Converts a crank angle into a time from or since that angle occurred.
@@ -31,7 +21,7 @@ unsigned long angleToTime(int16_t angle, byte method)
 
     if( (method == CRANKMATH_METHOD_INTERVAL_REV) || (method == CRANKMATH_METHOD_INTERVAL_DEFAULT) )
     {
-        returnTime = div360(angle * revolutionTime);
+        returnTime = ((angle * revolutionTime) / 360);
         //returnTime = angle * (unsigned long)timePerDegree;
     }
     else if (method == CRANKMATH_METHOD_INTERVAL_TOOTH)
@@ -43,7 +33,7 @@ unsigned long angleToTime(int16_t angle, byte method)
           unsigned long toothTime = (toothLastToothTime - toothLastMinusOneToothTime);
           interrupts();
           
-          returnTime = ( (toothTime * angle) / triggerToothAngle );
+          returnTime = ( (toothTime / triggerToothAngle) * angle );
         }
         else { returnTime = angleToTime(angle, CRANKMATH_METHOD_INTERVAL_REV); } //Safety check. This can occur if the last tooth seen was outside the normal pattern etc
     }

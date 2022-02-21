@@ -147,44 +147,6 @@ void command()
       Serial.print(F("001"));
       break;
 
-    //The G/g commands are used for bulk reading and writing to the EEPROM directly. This is typically a non-user feature but will be incorporated into SpeedyLoader for anyone programming many boards at once
-    case 'G': // Dumps the EEPROM values to serial
-    
-      //The format is 2 bytes for the overall EEPROM size, a comma and then a raw dump of the EEPROM values
-      Serial.write(lowByte(getEEPROMSize()));
-      Serial.write(highByte(getEEPROMSize()));
-      Serial.print(',');
-
-      for(uint16_t x = 0; x < getEEPROMSize(); x++)
-      {
-        Serial.write(EEPROMReadRaw(x));
-      }
-      cmdPending = false;
-      break;
-
-    case 'g': // Receive a dump of raw EEPROM values from the user
-    {
-      //Format is simlar to the above command. 2 bytes for the EEPROM size that is about to be transmitted, a comma and then a raw dump of the EEPROM values
-      while(Serial.available() < 3) { delay(1); }
-      uint16_t eepromSize = word(Serial.read(), Serial.read());
-      if(eepromSize != getEEPROMSize())
-      {
-        //Client is trying to send the wrong EEPROM size. Don't let it 
-        Serial.println(F("ERR; Incorrect EEPROM size"));
-        break;
-      }
-      else
-      {
-        for(uint16_t x = 0; x < eepromSize; x++)
-        {
-          while(Serial.available() < 3) { delay(1); }
-          EEPROMWriteRaw(x, Serial.read());
-        }
-      }
-      cmdPending = false;
-      break;
-    }
-
     case 'H': //Start the tooth logger
       currentStatus.toothLogEnabled = true;
       currentStatus.compositeLogEnabled = false; //Safety first (Should never be required)
@@ -319,7 +281,7 @@ void command()
       break;
 
     case 'Q': // send code version
-      Serial.print(F("speeduino 202204-dev"));
+      Serial.print(F("speeduino 202202"));
       break;
 
     case 'r': //New format for the optimised OutputChannels
@@ -351,7 +313,7 @@ void command()
       break;
 
     case 'S': // send code version
-      Serial.print(F("Speeduino 2022.04-dev"));
+      Serial.print(F("Speeduino 2022.02"));
       currentStatus.secl = 0; //This is required in TS3 due to its stricter timings
       break;
 
@@ -1037,6 +999,11 @@ void sendPageASCII()
     case ignMap2Page:
       Serial.println(F("\n2nd Ignition Map"));
       serial_print_3dtable(&ignitionTable2, ignitionTable2.type_key);
+      break;
+
+    case EFPage:
+      Serial.println(F("\nPage 9 Cfg"));
+      serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
       break;
 
     case warmupPage:

@@ -385,7 +385,6 @@ void ftm2_isr(void)
 
 uint16_t freeRam()
 {
-    uint32_t freeRam;
     uint32_t stackTop;
     uint32_t heapTop;
 
@@ -396,10 +395,9 @@ uint16_t freeRam()
     void *hTop = malloc(1);
     heapTop = (uint32_t)hTop;
     free(hTop);
-    freeRam = stackTop - heapTop;
 
-    if(freeRam>0xFFFF){return 0xFFFF;}
-    else{return freeRam;}
+    // The difference is the free, available ram.
+    return (uint16_t)stackTop - heapTop;
 }
 
 //This function is used for attempting to set the RTC time during compile

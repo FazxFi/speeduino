@@ -390,7 +390,6 @@
 #define ENGINE_PROTECT_BIT_MAP  1
 #define ENGINE_PROTECT_BIT_OIL  2
 #define ENGINE_PROTECT_BIT_AFR  3
-#define ENGINE_PROTECT_BIT_COOLANT 4
 
 
 #define CALIBRATION_TABLE_SIZE 512 ///< Calibration table size for CLT, IAT, O2
@@ -431,7 +430,8 @@ This is so we can use an unsigned byte (0-255) to represent temperature ranges f
 extern const char TSfirmwareVersion[] PROGMEM;
 
 extern const byte data_structure_version; //This identifies the data structure when reading / writing. Now in use: CURRENT_DATA_VERSION (migration on-the fly) ?
-extern FastCRC32 CRC32; //Generic CRC32 instance for general use in pages etc. Note that the serial comms has its own CRC32 instance
+extern FastCRC32 CRC32;
+
 
 extern struct table3d16RpmLoad fuelTable; //16x16 fuel map
 extern struct table3d16RpmLoad fuelTable2; //16x16 fuel map
@@ -443,18 +443,14 @@ extern struct table3d8RpmLoad boostTable; //8x8 boost map
 extern struct table3d8RpmLoad vvtTable; //8x8 vvt map
 extern struct table3d8RpmLoad vvt2Table; //8x8 vvt map
 extern struct table3d8RpmLoad wmiTable; //8x8 wmi map
-
-typedef table3d6RpmLoad trimTable3d; 
-
-extern trimTable3d trim1Table; //6x6 Fuel trim 1 map
-extern trimTable3d trim2Table; //6x6 Fuel trim 2 map
-extern trimTable3d trim3Table; //6x6 Fuel trim 3 map
-extern trimTable3d trim4Table; //6x6 Fuel trim 4 map
-extern trimTable3d trim5Table; //6x6 Fuel trim 5 map
-extern trimTable3d trim6Table; //6x6 Fuel trim 6 map
-extern trimTable3d trim7Table; //6x6 Fuel trim 7 map
-extern trimTable3d trim8Table; //6x6 Fuel trim 8 map
-
+extern struct table3d6RpmLoad trim1Table; //6x6 Fuel trim 1 map
+extern struct table3d6RpmLoad trim2Table; //6x6 Fuel trim 2 map
+extern struct table3d6RpmLoad trim3Table; //6x6 Fuel trim 3 map
+extern struct table3d6RpmLoad trim4Table; //6x6 Fuel trim 4 map
+extern struct table3d6RpmLoad trim5Table; //6x6 Fuel trim 5 map
+extern struct table3d6RpmLoad trim6Table; //6x6 Fuel trim 6 map
+extern struct table3d6RpmLoad trim7Table; //6x6 Fuel trim 7 map
+extern struct table3d6RpmLoad trim8Table; //6x6 Fuel trim 8 map
 extern struct table3d4RpmLoad dwellTable; //4x4 Dwell map
 extern struct table2D taeTable; //4 bin TPS Acceleration Enrichment map (2D)
 extern struct table2D maeTable;
@@ -481,7 +477,6 @@ extern struct table2D knockWindowStartTable;
 extern struct table2D knockWindowDurationTable;
 extern struct table2D oilPressureProtectTable;
 extern struct table2D wmiAdvTable; //6 bin wmi correction table for timing advance (2D)
-extern struct table2D coolantProtectTable; //6 bin coolant temperature protection table for engine protection (2D)
 extern struct table2D fanPWMTable;
 
 //These are for the direct port manipulation of the injectors, coils and aux outputs
@@ -1158,9 +1153,19 @@ struct config9 {
   byte boostByGear6;
 
   byte PWMFanDuty[4];
-  byte coolantProtEnbl : 1;
-  byte coolantProtRPM[6];
-  byte coolantProtTemp[6];
+  byte unused10_166;
+  byte unused10_167;
+  byte unused10_168;
+  byte unused10_169;
+  byte unused10_170;
+  byte unused10_171;
+  byte unused10_172;
+  byte unused10_173;
+  byte unused10_174;
+  byte unused10_175;
+  byte unused10_176;
+  byte unused10_177;
+  byte unused10_178;
   byte unused10_179;
   byte unused10_180;
   byte unused10_181;
@@ -1421,6 +1426,19 @@ struct config13 {
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
 
+/** Page 15 of the config - this page is for extra feature.
+See ini file for further info (Config Page 10 in the ini).
+*/
+struct config15 {
+
+  byte Unused15_0_128[128];
+
+#if defined(CORE_AVR)
+  };
+#else
+  } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
+#endif
+
 extern byte pinInjector1; //Output pin injector 1
 extern byte pinInjector2; //Output pin injector 2
 extern byte pinInjector3; //Output pin injector 3
@@ -1513,6 +1531,7 @@ extern struct config6 configPage6;
 extern struct config9 configPage9;
 extern struct config10 configPage10;
 extern struct config13 configPage13;
+extern struct config15 configPage15;
 //extern byte cltCalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the coolant sensor calibration values */
 //extern byte iatCalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the inlet air temperature sensor calibration values */
 //extern byte o2CalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the O2 sensor calibration values */
