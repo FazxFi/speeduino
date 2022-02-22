@@ -10,9 +10,13 @@ void boostByGear();
 void idleControl();
 void vvtControl();
 void initialiseFan();
+void initialiseAirCon();
 void nitrousControl();
 void fanControl();
+void airConControl();
 void wmiControl();
+
+bool READ_AIRCON_REQUEST();
 
 #define SIMPLE_BOOST_P  1
 #define SIMPLE_BOOST_I  1
@@ -30,6 +34,14 @@ void wmiControl();
 #define VVT2_PIN_OFF()    VVT2_PIN_LOW();
 #define FAN_PIN_LOW()    *fan_pin_port &= ~(fan_pin_mask)
 #define FAN_PIN_HIGH()   *fan_pin_port |= (fan_pin_mask)
+#define AIRCON_ON()      {((((configPage15.airConCompPol&1)==1)) ? AIRCON_PIN_LOW() : AIRCON_PIN_HIGH()); BIT_SET(currentStatus.airConStatus, BIT_AIRCON_COMPRESSOR);}
+#define AIRCON_OFF()      {((((configPage15.airConCompPol&1)==1)) ? AIRCON_PIN_HIGH() : AIRCON_PIN_LOW()); BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_COMPRESSOR);}
+#define AIRCON_FAN_ON()      ((((configPage15.airConFanPol&1)==1)) ? AIRCON_FAN_PIN_LOW() : AIRCON_FAN_PIN_HIGH()); 
+#define AIRCON_FAN_OFF()     (((configPage15.airConFanPol&1)==1) ? AIRCON_FAN_PIN_HIGH() : AIRCON_FAN_PIN_LOW());
+#define AIRCON_PIN_LOW()    *aircon_comp_pin_port &= ~(aircon_comp_pin_mask)
+#define AIRCON_PIN_HIGH()   *aircon_comp_pin_port |= (aircon_comp_pin_mask)
+#define AIRCON_FAN_PIN_LOW()    *aircon_fan_pin_port &= ~(aircon_fan_pin_mask)
+#define AIRCON_FAN_PIN_HIGH()   *aircon_fan_pin_port |= (aircon_fan_pin_mask)
 #define N2O_STAGE1_PIN_LOW()  *n2o_stage1_pin_port &= ~(n2o_stage1_pin_mask)
 #define N2O_STAGE1_PIN_HIGH() *n2o_stage1_pin_port |= (n2o_stage1_pin_mask)
 #define N2O_STAGE2_PIN_LOW()  *n2o_stage2_pin_port &= ~(n2o_stage2_pin_mask)
@@ -51,6 +63,12 @@ volatile PORT_TYPE *vvt2_pin_port;
 volatile PINMASK_TYPE vvt2_pin_mask;
 volatile PORT_TYPE *fan_pin_port;
 volatile PINMASK_TYPE fan_pin_mask;
+volatile PORT_TYPE *aircon_comp_pin_port;
+volatile PINMASK_TYPE aircon_comp_pin_mask;
+volatile PORT_TYPE *aircon_fan_pin_port;
+volatile PINMASK_TYPE aircon_fan_pin_mask;
+volatile PORT_TYPE *aircon_req_pin_port;
+volatile PINMASK_TYPE aircon_req_pin_mask;
 volatile PORT_TYPE *n2o_stage1_pin_port;
 volatile PINMASK_TYPE n2o_stage1_pin_mask;
 volatile PORT_TYPE *n2o_stage2_pin_port;
@@ -75,6 +93,14 @@ void fanInterrupt();
 uint32_t vvtWarmTime;
 bool vvtIsHot;
 bool vvtTimeHold;
+
+bool acIsEnabled;
+bool acStandAloneFanIsEnabled;
+uint8_t acStartDelay;
+uint8_t acTPSLockoutDelay;
+uint8_t acRPMLockoutDelay;
+uint8_t acAfterEngineStartDelay;
+bool waitedAfterCranking; // This starts false and prevents the A/C from running until a few seconds after cranking
 
 volatile bool vvt1_pwm_state;
 volatile bool vvt2_pwm_state;

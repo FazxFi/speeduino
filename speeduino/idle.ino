@@ -496,6 +496,7 @@ void idleControl()
       }
 
       if(currentStatus.idleUpActive == true) { currentStatus.idleDuty += configPage2.idleUpAdder; } //Add Idle Up amount if active
+      if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
       if( currentStatus.idleDuty > 100 ) { currentStatus.idleDuty = 100; } //Safety Check
       if( currentStatus.idleDuty == 0 ) 
       { 
@@ -538,9 +539,34 @@ void idleControl()
         if( (idleCounter & 31) == 1) { idlePID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD); } //This only needs to be run very infrequently, once every 32 calls to idleControl(). This is approx. once per second
 
         PID_computed = idlePID.Compute(true);
+        long TEMP_idle_pwm_target_value;
         if(PID_computed == true)
         {
-          idle_pwm_target_value = idle_pid_target_value>>2; //increased resolution
+          TEMP_idle_pwm_target_value = idle_pid_target_value;
+
+          // Add an offset to the duty cycle, outside of the closed loop. When tuned correctly, the extra load from
+          // the air conditioning should exactly cancel this out and the PID loop will be relatively unaffected.
+          if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true)
+          {
+            // Add air conditioning idle-up
+            // We are adding percentage steps, but the loop doesn't operate in percentage steps - it works in PWM count
+            TEMP_idle_pwm_target_value += percentage(configPage15.airConIdleSteps, idle_pwm_max_count<<2);
+            if(TEMP_idle_pwm_target_value > (idle_pwm_max_count<<2)) { TEMP_idle_pwm_target_value = (idle_pwm_max_count<<2); }
+          }
+
+          // Fixed this by putting it here, however I have not tested it.
+          if(currentStatus.idleUpActive == true)
+          { 
+            // Add Idle Up amount if active
+            // Again, we use configPage9.airConIdleSteps * idle_pwm_max_count / 100 because we are adding percentage steps, but the loop doesn't operate in percentage steps - it works in PWM count
+            TEMP_idle_pwm_target_value += percentage(configPage2.idleUpAdder, idle_pwm_max_count<<2);
+            if(TEMP_idle_pwm_target_value > (idle_pwm_max_count<<2)) { TEMP_idle_pwm_target_value = (idle_pwm_max_count<<2); }
+          }
+
+          // Now assign the real PWM value
+          idle_pwm_target_value = TEMP_idle_pwm_target_value>>2; // increased resolution
+
+          currentStatus.idleDuty = (byte)(idle_pwm_target_value * 100 / idle_pwm_max_count);
           if( idle_pwm_target_value == 0 )
           { 
             disableIdle(); 
@@ -548,8 +574,7 @@ void idleControl()
             break; 
           }
           BIT_SET(currentStatus.spark, BIT_SPARK_IDLE); //Turn the idle control flag on
-          currentStatus.idleLoad = ((unsigned long)(idle_pwm_target_value * 100UL) / idle_pwm_max_count);
-          if(currentStatus.idleUpActive == true) { currentStatus.idleDuty += configPage2.idleUpAdder; } //Add Idle Up amount if active
+          currentStatus.idleLoad = currentStatus.idleDuty;
 
         }
         idleCounter++;
@@ -572,7 +597,26 @@ void idleControl()
       {
         //Read the OL table as feedforward term
         FeedForwardTerm = percentage(table2D_getValue(&iacPWMTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET), idle_pwm_max_count<<2); //All temps are offset by 40 degrees
-    
+        
+        // Add an offset to the feed forward term. When tuned correctly, the extra load from the air conditioning
+        // should exactly cancel this out and the PID loop will be relatively unaffected.
+        if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true)
+        {
+          // Add air conditioning idle-up
+          // We are adding percentage steps, but the loop doesn't operate in percentage steps - it works in PWM count <<2 (PWM count * 4)
+          FeedForwardTerm += percentage(configPage15.airConIdleSteps, (idle_pwm_max_count<<2));
+          if(FeedForwardTerm > (idle_pwm_max_count<<2)) { FeedForwardTerm = (idle_pwm_max_count<<2); }
+        }
+
+        // Fixed this by putting it here, however I have not tested it.
+        if(currentStatus.idleUpActive == true)
+        { 
+          // Add Idle Up amount if active
+          // Again, we are adding percentage steps, but the loop doesn't operate in percentage steps - it works in PWM count <<2 (PWM count * 4)
+          FeedForwardTerm += percentage(configPage2.idleUpAdder, (idle_pwm_max_count<<2));
+          if(FeedForwardTerm > (idle_pwm_max_count<<2)) { FeedForwardTerm = (idle_pwm_max_count<<2); }
+        }
+
         currentStatus.CLIdleTarget = (byte)table2D_getValue(&iacClosedLoopTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
         idle_cl_target_rpm = (uint16_t)currentStatus.CLIdleTarget * 10; //Multiply the byte target value back out by 10
         if( (idleCounter & 31) == 1) { idlePID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD); } //This only needs to be run very infrequently, once every 32 calls to idleControl(). This is approx. once per 9 seconds
@@ -611,7 +655,7 @@ void idleControl()
           //Currently cranking. Use the cranking table
           idleStepper.targetIdleStep = table2D_getValue(&iacCrankStepsTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3; //All temps are offset by 40 degrees. Step counts are divided by 3 in TS. Multiply back out here
           if(currentStatus.idleUpActive == true) { idleStepper.targetIdleStep += configPage2.idleUpAdder; } //Add Idle Up amount if active
-
+          if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
           //limit to the configured max steps. This must include any idle up adder, to prevent over-opening.
           if (idleStepper.targetIdleStep > (configPage9.iacMaxSteps * 3) )
           {
@@ -640,7 +684,7 @@ void idleControl()
             if(currentStatus.idleUpActive == true) { idleStepper.targetIdleStep += configPage2.idleUpAdder; } //Add Idle Up amount if active
             iacStepTime_uS = configPage6.iacStepTime * 1000;
             iacCoolTime_uS = configPage9.iacCoolTime * 1000;
-
+            if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
             //limit to the configured max steps. This must include any idle up adder, to prevent over-opening.
             if (idleStepper.targetIdleStep > (configPage9.iacMaxSteps * 3) )
             {
@@ -670,6 +714,7 @@ void idleControl()
 
           //limit to the configured max steps. This must include any idle up adder, to prevent over-opening.
           if (idleStepper.targetIdleStep > (configPage9.iacMaxSteps * 3) )
+          if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
           {
             idleStepper.targetIdleStep = configPage9.iacMaxSteps * 3;
           }
@@ -721,6 +766,7 @@ void idleControl()
 
         }
         if(currentStatus.idleUpActive == true) { idleStepper.targetIdleStep += configPage2.idleUpAdder; } //Add Idle Up amount if active
+        if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
         //limit to the configured max steps. This must include any idle up adder, to prevent over-opening.
         if (idleStepper.targetIdleStep > (configPage9.iacMaxSteps * 3) )
         {
@@ -781,7 +827,8 @@ void disableIdle()
         */
         idleStepper.targetIdleStep = table2D_getValue(&iacCrankStepsTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3; //All temps are offset by 40 degrees. Step counts are divided by 3 in TS. Multiply back out here
         if(currentStatus.idleUpActive == true) { idleStepper.targetIdleStep += configPage2.idleUpAdder; } //Add Idle Up amount if active?
-
+        if(configPage15.airConIdleSteps>0 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true) { currentStatus.idleDuty += configPage15.airConIdleSteps; } // Add air conditioning idle-up
+        
         //limit to the configured max steps. This must include any idle up adder, to prevent over-opening.
         if (idleStepper.targetIdleStep > (configPage9.iacMaxSteps * 3) )
         {
