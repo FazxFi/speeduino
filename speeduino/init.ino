@@ -2608,6 +2608,7 @@ void setPinMapping(byte boardID)
     pinMode(pinAirConFan, OUTPUT);
   }
 
+
   //This is a legacy mode option to revert the MAP reading behaviour to match what was in place prior to the 201905 firmware
   if(configPage2.legacyMAP > 0) { digitalWrite(pinMAP, HIGH); }
 

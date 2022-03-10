@@ -1463,7 +1463,8 @@ struct config15 {
   byte airConRPMCutTime;
   byte airConFanPin;
 
-  byte Unused15_13_128[116];
+  //Bytes 13-192
+  byte Unused15_13_128[115];
 
 #if defined(CORE_AVR)
   };

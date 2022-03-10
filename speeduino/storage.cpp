@@ -270,7 +270,7 @@ void writeConfig(uint8_t pageNum)
     case EFPage:
       /*---------------------------------------------------
       | Config page 15 (See storage.h for data layout)
-      | 128 byte long config table
+      | 182 byte long config table
       -----------------------------------------------------*/
       result = write_range((byte *)&configPage15, (byte *)&configPage15+sizeof(configPage15), { EEPROM_CONFIG15_START, 0 });
       break;
