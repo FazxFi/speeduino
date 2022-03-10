@@ -1002,7 +1002,7 @@ void sendPageASCII()
       break;
 
     case EFPage:
-      Serial.println(F("\nPage 9 Cfg"));
+      Serial.println(F("\nPage 15 Cfg"));
       serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
       break;
 
