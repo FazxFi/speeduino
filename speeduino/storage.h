@@ -96,8 +96,8 @@
  * | 3187       |6           | Trim8 table (X axis) (RPM)           |                                    |
  * | 3193       |6           | Trim8 table (Y axis) (MAP)           |                                    |
  * | 3199       |2           | HOLE ??                              |                                    |
- * | 3201       |192         | Page 15 settings                     | @ref EEPROM_CONFIG15_START         |
- * | 3393       |293         | EMPTY                                |                                    |
+ * | 3201       |128         | Page 15 settings                     | @ref EEPROM_CONFIG15_START         |
+ * | 3329       |357         | EMPTY                                |                                    |
  * | 3686       |56          | Page CRC32 sums (4x14)               | Last first, 14 -> 1                |
  * | 3742       |1           | Baro value saved at init             | @ref EEPROM_LAST_BARO              |
  * | 3743       |64          | O2 Calibration Bins                  | @ref EEPROM_CALIBRATION_O2_BINS    |
@@ -169,7 +169,7 @@ bool isEepromWritePending();
 
 //This is test for the new pages-15-
 #define EEPROM_CONFIG15_START   3201
-#define EEPROM_CONFIG15_END     3393
+#define EEPROM_CONFIG15_END     3329
 
 //These were the values used previously when all calibration tables were 512 long. They need to be retained so the update process (202005 -> 202008) can work
 #define EEPROM_CALIBRATION_O2_OLD   2559
