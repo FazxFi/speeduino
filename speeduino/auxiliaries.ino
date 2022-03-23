@@ -40,8 +40,9 @@ void initialiseAirCon()
     BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_TPS_LOCKOUT); // Bit 3
     BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON);  // Bit 4
     BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_CLT_LOCKOUT); // Bit 5
-    aircon_req_pin_port = portInputRegister(digitalPinToPort(pinAirConRequest));
-    aircon_req_pin_mask = digitalPinToBitMask(pinAirConRequest);
+    BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_FAN);         // Bit 6
+    aircon_req_pin_port  = portInputRegister(digitalPinToPort(pinAirConRequest));
+    aircon_req_pin_mask  = digitalPinToBitMask(pinAirConRequest);
     aircon_comp_pin_port = portOutputRegister(digitalPinToPort(pinAirConComp));
     aircon_comp_pin_mask = digitalPinToBitMask(pinAirConComp);
 
@@ -183,12 +184,14 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_ON();
+        BIT_SET(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       // Start the A/C compressor after the "Compressor On" delay period
       if(acStartDelay >= configPage15.airConCompOnDelay)
       {
         AIRCON_ON();
+        BIT_SET(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
       else
       {
@@ -203,6 +206,7 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_OFF();
+        BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       AIRCON_OFF();

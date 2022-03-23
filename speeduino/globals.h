@@ -236,7 +236,7 @@
 #define BIT_AIRCON_TPS_LOCKOUT    3 //Indicates the A/C is locked out due to high TPS, or the post-high-TPS "stand-down" lockout period
 #define BIT_AIRCON_TURNING_ON     4 //Indicates the A/C request is on (i.e. A/C button pressed), the lockouts are off, however the start delay has not yet elapsed. This gives the idle up time to kick in before the compressor.
 #define BIT_AIRCON_CLT_LOCKOUT    5 //Indicates the A/C is locked out either due to high coolant temp.
-#define BIT_AIRCON_UNUSED7        6
+#define BIT_AIRCON_FAN            6 //Indicates wheather the A/C fan is running
 #define BIT_AIRCON_UNUSED8        7
 
 #define VALID_MAP_MAX 1022 //The largest ADC value that is valid for the MAP sensor
