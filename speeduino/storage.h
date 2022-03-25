@@ -167,7 +167,7 @@ bool isEepromWritePending();
 #define EEPROM_CONFIG8_MAP7   3101
 #define EEPROM_CONFIG8_MAP8   3151
 
-//This is test for the new pages-15-
+//This is for the new pages-15-
 #define EEPROM_CONFIG15_START   3200
 #define EEPROM_CONFIG15_END     3329
 
