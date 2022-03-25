@@ -184,14 +184,12 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_ON();
-        BIT_SET(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       // Start the A/C compressor after the "Compressor On" delay period
       if(acStartDelay >= configPage15.airConCompOnDelay)
       {
         AIRCON_ON();
-        BIT_SET(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
       else
       {
@@ -206,7 +204,6 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_OFF();
-        BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       AIRCON_OFF();
