@@ -168,7 +168,7 @@ bool isEepromWritePending();
 #define EEPROM_CONFIG8_MAP8   3151
 
 //This is for the new pages-15-
-#define EEPROM_CONFIG15_START   3200
+#define EEPROM_CONFIG15_START   3201
 #define EEPROM_CONFIG15_END     3329
 
 //These were the values used previously when all calibration tables were 512 long. They need to be retained so the update process (202005 -> 202008) can work
