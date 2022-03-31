@@ -580,7 +580,7 @@ void doUpdates()
     configPage4.vvtMinClt = 0;
 
     //Set A/C defoult value
-    configPage15.airConEnable = 0;
+    //configPage15.airConEnable = 0;
     /*configPage15.airConAfterStartDelay = 5;
     configPage15.airConFanEnabled = 0;
     configPage15.airConClTempCut = 120;

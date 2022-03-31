@@ -741,7 +741,7 @@ struct statuses {
   long vvt2Duty; //Has to be a long for PID calcs (CL VVT control)
   byte outputsStatus;
   byte TS_SD_Status; //TunerStudios SD card status
-  byte airConStatus; // The air conditioning status bits (see BIT_AIRCON_* defines at the top of this file.)
+  volatile byte airConStatus; // The air conditioning status bits (see BIT_AIRCON_* defines at the top of this file.)
 };
 
 /** Page 2 of the config - mostly variables that are required for fuel.
@@ -1442,16 +1442,16 @@ See ini file for further info (Config Page 10 in the ini).
 struct config15 {
 
   //Byte 0 - Air conditioning binary points
-  byte airConEnable : 1;
-  byte airConCompPol : 1;
-  byte airConReqPol : 1;
-  byte airConTurnsFanOn : 1;
-  byte airConFanEnabled : 1;
-  byte airConFanPol : 3;
+  byte airConEnable     :1;
+  byte airConCompPol    :1;
+  byte airConReqPol     :1;
+  byte airConTurnsFanOn :1;
+  byte airConFanEnabled :1;
+  byte airConFanPol     :1;
 
   //Bytes 1-12 - Air conditioning analog points
-  byte airConCompPin;
-  byte airConReqPin;
+  byte airConCompPin    :6;
+  byte airConReqPin     :6;
   byte airConTPSCut;
   byte airConMinRPMdiv100;
   byte airConMaxRPMdiv100;
@@ -1461,10 +1461,10 @@ struct config15 {
   byte airConCompOnDelay;
   byte airConAfterStartDelay;
   byte airConRPMCutTime;
-  byte airConFanPin;
+  byte airConFanPin     :6;
 
   //Bytes 13-128
-  byte Unused15_13_128[115];
+  byte Unused15_13_127[115];
 
 #if defined(CORE_AVR)
   };
