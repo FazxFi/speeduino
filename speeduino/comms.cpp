@@ -1001,7 +1001,7 @@ void sendPageASCII()
       serial_print_3dtable(&ignitionTable2, ignitionTable2.type_key);
       break;
 
-    case EFPage:
+    case exFPage:
       Serial.println(F("\nPage 15 Cfg"));
       serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
       break;

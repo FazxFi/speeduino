@@ -396,10 +396,10 @@ page_iterator_t map_page_offset_to_entity(uint8_t pageNumber, uint16_t offset)
       CHECK_RAW(progOutsPage, offset, &configPage13, sizeof(configPage13), 0)
       END_OF_PAGE(progOutsPage, 1)
     }
-    case EFPage:  
+    case exFPage:  
     {
-      CHECK_RAW(EFPage, offset, &configPage15, sizeof(configPage15), 0)
-      END_OF_PAGE(EFPage, 1)
+      CHECK_RAW(exFPage, offset, &configPage15, sizeof(configPage15), 0)
+      END_OF_PAGE(exFPage, 1)
     }
 
     default:
