@@ -1441,17 +1441,18 @@ See ini file for further info (Config Page 10 in the ini).
 */
 struct config15 {
 
-  //Byte 0 - Air conditioning binary points
+  //Byte 0 - 3 Air conditioning setup
   byte airConEnable     :1;
-  byte airConCompPol    :1;
   byte airConReqPol     :1;
-  byte airConTurnsFanOn :1;
+  byte airConReqPin     :6; //8
+  byte airConCompPol    :1;
+  byte airConCompPin    :6; 
+  byte airConTurnsFanOn :1; //8
   byte airConFanEnabled :1;
   byte airConFanPol     :1;
+  byte airConFanPin     :6; //8
 
-  //Bytes 1-12 - Air conditioning analog points
-  byte airConCompPin    :6;
-  byte airConReqPin     :6;
+  //Bytes 4-11 - Air conditioning parameter 
   byte airConTPSCut;
   byte airConMinRPMdiv100;
   byte airConMaxRPMdiv100;
@@ -1461,10 +1462,9 @@ struct config15 {
   byte airConCompOnDelay;
   byte airConAfterStartDelay;
   byte airConRPMCutTime;
-  byte airConFanPin     :6;
 
-  //Bytes 13-128
-  byte Unused15_13_127[115];
+  //Bytes 12-128
+  byte Unused15_12_127[116];
 
 #if defined(CORE_AVR)
   };
