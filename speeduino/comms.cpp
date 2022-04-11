@@ -42,14 +42,186 @@ bool legacySerial = false;
 
 /** Processes the incoming data on the serial buffer based on the command sent.
 Can be either data for a new command or a continuation of data for command that is already in progress:
-- cmdPending = If a command has started but is wairing on further data to complete
+- cmdPending = If a command has started but is waiting on further data to complete
 - chunkPending = Specifically for the new receive value method where TS will send a known number of contiguous bytes to be written to a table
 
 Comands are single byte (letter symbol) commands.
 */
 void command()
 {
-  if ( (cmdPending == false) && (legacySerial == false) ) { currentCommand = Serial.read(); }
+
+  //Check for an existing legacy command in progress
+  if(cmdPending == true)
+  {
+    legacySerialCommand();
+    return;
+  }
+
+  if (serialReceivePending == false)
+  { 
+    serialBytesReceived = 0; //Reset the number of bytes received as we're starting a new command
+
+    //New command received
+    //Need at least 2 bytes to read the length of the command
+    serialReceivePending = true; //Flag the serial receive as being in progress
+    byte highByte = Serial.read();
+
+    //Check if the command is legacy using the call/response mechanism
+    if( ((highByte >= 'A') && (highByte <= 'z')) || (highByte == '?') )
+    {
+      //Handle legacy cases here
+      serialReceivePending = false; //Make sure new serial handling does not interfere with legacy handling
+      legacySerial = true;
+      currentCommand = highByte;
+      legacySerialCommand();
+      return;
+    }
+    else
+    {
+      while(Serial.available() == 0) { } //Wait for the 2nd byte to be received (This will almost never happen)
+
+      byte lowByte = Serial.read();
+      serialPayloadLength = word(highByte, lowByte);
+      serialBytesReceived = 2;
+      cmdPending = false; // Make sure legacy handling does not interfere with new serial handling
+      serialReceiveStartTime = millis();
+    }
+  }
+
+  //If there is a serial receive in progress, read as much from the buffer as possible or until we receive all bytes
+  while( (Serial.available() > 0) && (serialReceivePending == true) )
+  {
+    if (serialBytesReceived < (serialPayloadLength + SERIAL_LEN_SIZE) )
+    {
+      serialPayload[(serialBytesReceived - SERIAL_LEN_SIZE)] = Serial.read();
+      serialBytesReceived++;
+    }
+    else if (Serial.available() >= SERIAL_CRC_LENGTH)
+    {
+      uint32_t crc1 = Serial.read();
+      uint32_t crc2 = Serial.read();
+      uint32_t crc3 = Serial.read();
+      uint32_t crc4 = Serial.read();
+      serialCRC = (crc1<<24) | (crc2<<16) | (crc3<<8) | crc4;
+      
+      serialReceivePending = false; //The serial receive is now complete
+
+      //Test the CRC
+      uint32_t receivedCRC = CRC32_serial.crc32(serialPayload, serialPayloadLength);
+      //receivedCRC++;
+      if(serialCRC != receivedCRC)
+      {
+        //CRC Error. Need to send an error message
+        sendSerialReturnCode(SERIAL_RC_CRC_ERR);
+      }
+      else
+      {
+        //CRC is correct. Process the command
+        processSerialCommand();
+      } //CRC match
+    } //CRC received in full
+
+    //Check for a timeout
+    if( (millis() - serialReceiveStartTime) > SERIAL_TIMEOUT)
+    {
+      //Timeout occurred
+      serialReceivePending = false; //Reset the serial receive
+
+      //Flush the serial buffer
+      while(Serial.available() > 0)
+      {
+        Serial.read();
+      }
+      sendSerialReturnCode(SERIAL_RC_TIMEOUT);
+    } //Timeout
+  } //Data in serial buffer and serial receive in progress
+}
+
+void sendSerialReturnCode(byte returnCode)
+{
+  Serial.write((uint8_t)0);
+  Serial.write((uint8_t)1); //Size is always 1
+
+  Serial.write(returnCode);
+
+  //Calculate and send CRC
+  uint32_t CRC32_val = CRC32_serial.crc32(&returnCode, 1);
+  Serial.write( ((CRC32_val >> 24) & 255) );
+  Serial.write( ((CRC32_val >> 16) & 255) );
+  Serial.write( ((CRC32_val >> 8) & 255) );
+  Serial.write( (CRC32_val & 255) );
+}
+
+void sendSerialPayload(void *payload, uint16_t payloadLength)
+{
+  //Start new transmission session
+  serialBytesTransmitted = 0; 
+  serialWriteInProgress = false;
+
+  uint16_t totalPayloadLength = payloadLength;
+  Serial.write(totalPayloadLength >> 8);
+  Serial.write(totalPayloadLength);
+
+  //Need to handle serial buffer being full. This is just for testing
+  serialPayloadLength = payloadLength; //Save the payload length in case we need to transmit in multiple steps
+  for(uint16_t i = 0; i < payloadLength; i++)
+  {
+    Serial.write(((uint8_t*)payload)[i]);
+    serialBytesTransmitted++;
+
+    if(Serial.availableForWrite() == 0)
+    {
+      //Serial buffer is full. Need to wait for it to be free
+      serialWriteInProgress = true;
+      break;
+    }
+  }
+
+  if(serialWriteInProgress == false)
+  {
+    //All data transmitted. Send the CRC
+    uint32_t CRC32_val = CRC32_serial.crc32((uint8_t*)payload, payloadLength);
+    Serial.write( ((CRC32_val >> 24) & 255) );
+    Serial.write( ((CRC32_val >> 16) & 255) );
+    Serial.write( ((CRC32_val >> 8) & 255) );
+    Serial.write( (CRC32_val & 255) );
+  }
+}
+
+void continueSerialTransmission()
+{
+  if(serialWriteInProgress == true)
+  {
+    serialWriteInProgress = false; //Assume we will reach the end of the serial buffer. If we run out of buffer, this will be set to true below
+    //Serial buffer is free. Continue sending the data
+    for(uint16_t i = serialBytesTransmitted; i < serialPayloadLength; i++)
+    {
+      Serial.write(serialPayload[i]);
+      serialBytesTransmitted++;
+
+      if(Serial.availableForWrite() == 0)
+      {
+        //Serial buffer is full. Need to wait for it to be free
+        serialWriteInProgress = true;
+        break;
+      }
+    }
+
+    if(serialWriteInProgress == false)
+    {
+      //All data transmitted. Send the CRC
+      uint32_t CRC32_val = CRC32_serial.crc32(serialPayload, serialPayloadLength);
+      Serial.write( ((CRC32_val >> 24) & 255) );
+      Serial.write( ((CRC32_val >> 16) & 255) );
+      Serial.write( ((CRC32_val >> 8) & 255) );
+      Serial.write( (CRC32_val & 255) );
+    }
+  }
+}
+
+void processSerialCommand()
+{
+  currentCommand = serialPayload[0];
 
   switch (currentCommand)
   {
@@ -224,25 +396,9 @@ void command()
 
       if (Serial.available() > 0)
       {
-        currentPage = Serial.read();
-        //This converts the ascii number char into binary. Note that this will break everyything if there are ever more than 48 pages (48 = asci code for '0')
-        if ((currentPage >= '0') && (currentPage <= '9')) // 0 - 9
-        {
-          currentPage -= 48;
-        }
-        else if ((currentPage >= 'a') && (currentPage <= 'f')) // 10 - 15
-        {
-          currentPage -= 87;
-        }
-        else if ((currentPage >= 'A') && (currentPage <= 'F'))
-        {
-          currentPage -= 55;
-        }
-        
-        // Detecting if the current page is a table/map
-        if ( (currentPage == veMapPage) || (currentPage == ignMapPage) || (currentPage == afrMapPage) || (currentPage == fuelMap2Page) || (currentPage == ignMap2Page) ) { isMap = true; }
-        else { isMap = false; }
-        cmdPending = false;
+        //This should never happen, but just in case
+        sendSerialReturnCode(SERIAL_RC_RANGE_ERR);
+        break;
       }
       break;
 
@@ -353,6 +509,103 @@ void command()
       receiveCalibration(tableID); //Receive new values and store in memory
       writeCalibration(); //Store received values in EEPROM
 
+          }
+
+          //Update the CRC
+          if(totalOffset == 0)
+          {
+            calibrationCRC = CRC32.crc32(&serialPayload[7], 1, false);
+          }
+          else
+          {
+            calibrationCRC = CRC32.crc32_upd(&serialPayload[x+7], 1, false);
+          }
+          //Check if CRC is finished
+          if(totalOffset == 1023) 
+          {
+            //apply CRC reflection
+            calibrationCRC = ~calibrationCRC;
+            storeCalibrationCRC32(O2_CALIBRATION_PAGE, calibrationCRC);
+          }
+        }
+        sendSerialReturnCode(SERIAL_RC_OK);
+        Serial.flush(); //This is safe because engine is assumed to not be running during calibration
+
+        //Check if this is the final chunk of calibration data
+        #ifdef CORE_STM32
+          //STM32 requires TS to send 16 x 64 bytes chunk rather than 4 x 256 bytes. 
+          if(valueOffset == (64*15)) { writeCalibrationPage(cmd); } //Store received values in EEPROM if this is the final chunk of calibration
+        #else
+          if(valueOffset == (256*3)) { writeCalibrationPage(cmd); } //Store received values in EEPROM if this is the final chunk of calibration
+        #endif
+      }
+      else if(cmd == IAT_CALIBRATION_PAGE)
+      {
+        void* pnt_TargetTable_values = (uint16_t *)&iatCalibration_values;
+        uint16_t* pnt_TargetTable_bins = (uint16_t *)&iatCalibration_bins;
+
+        //Temperature calibrations are sent as 32 16-bit values (ie 64 bytes total)
+        if(calibrationLength == 64)
+        {
+          for (uint16_t x = 0; x < 32; x++)
+          {
+            int16_t tempValue = (int16_t)(word(serialPayload[((2 * x) + 8)], serialPayload[((2 * x) + 7)])); //Combine the 2 bytes into a single, signed 16-bit value
+            tempValue = div(tempValue, 10).quot; //TS sends values multiplied by 10 so divide back to whole degrees. 
+            tempValue = ((tempValue - 32) * 5) / 9; //Convert from F to C
+            
+            //Apply the temp offset and check that it results in all values being positive
+            tempValue = tempValue + CALIBRATION_TEMPERATURE_OFFSET;
+            if (tempValue < 0) { tempValue = 0; }
+
+            
+            ((uint16_t*)pnt_TargetTable_values)[x] = tempValue; //Both temp tables have 16-bit values
+            pnt_TargetTable_bins[x] = (x * 32U);
+          }
+          //Update the CRC
+          calibrationCRC = CRC32.crc32(&serialPayload[7], 64);
+          storeCalibrationCRC32(IAT_CALIBRATION_PAGE, calibrationCRC);
+
+          writeCalibration();
+          sendSerialReturnCode(SERIAL_RC_OK);
+        }
+        else { sendSerialReturnCode(SERIAL_RC_RANGE_ERR); }
+        
+      }
+      else if(cmd == CLT_CALIBRATION_PAGE)
+      {
+        void* pnt_TargetTable_values = (uint16_t *)&cltCalibration_values;
+        uint16_t* pnt_TargetTable_bins = (uint16_t *)&cltCalibration_bins;
+
+        //Temperature calibrations are sent as 32 16-bit values
+        if(calibrationLength == 64)
+        {
+          for (uint16_t x = 0; x < 32; x++)
+          {
+            int16_t tempValue = (int16_t)(word(serialPayload[((2 * x) + 8)], serialPayload[((2 * x) + 7)])); //Combine the 2 bytes into a single, signed 16-bit value
+            tempValue = div(tempValue, 10).quot; //TS sends values multiplied by 10 so divide back to whole degrees. 
+            tempValue = ((tempValue - 32) * 5) / 9; //Convert from F to C
+            
+            //Apply the temp offset and check that it results in all values being positive
+            tempValue = tempValue + CALIBRATION_TEMPERATURE_OFFSET;
+            if (tempValue < 0) { tempValue = 0; }
+
+            
+            ((uint16_t*)pnt_TargetTable_values)[x] = tempValue; //Both temp tables have 16-bit values
+            pnt_TargetTable_bins[x] = (x * 32U);
+          }
+          //Update the CRC
+          calibrationCRC = CRC32.crc32(&serialPayload[7], 64);
+          storeCalibrationCRC32(CLT_CALIBRATION_PAGE, calibrationCRC);
+
+          writeCalibration();
+          sendSerialReturnCode(SERIAL_RC_OK);
+        }
+        else { sendSerialReturnCode(SERIAL_RC_RANGE_ERR); }
+      }
+      else
+      {
+        sendSerialReturnCode(SERIAL_RC_RANGE_ERR);
+      }
       break;
 
     case 'U': //User wants to reset the Arduino (probably for FW update)
@@ -1189,10 +1442,4 @@ void sendCompositeLog_old(byte startOffset)
     }
     cmdPending = false; 
   } 
-}
-
-void testComm()
-{
-  Serial.write(1);
-  return;
 }
