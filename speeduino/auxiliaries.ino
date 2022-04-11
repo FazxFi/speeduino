@@ -22,7 +22,7 @@ Air Conditioning Control
 */
 void initialiseAirCon()
 {
-  if( (configPage15.airConEnable&1) == 1 &&
+  if( configPage15.airConEnable == 1 &&
       (pinAirConRequest != 0 ||
       pinAirConComp != 0) )
   {
@@ -184,6 +184,7 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_ON();
+        BIT_SET(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       // Start the A/C compressor after the "Compressor On" delay period
@@ -204,6 +205,7 @@ void airConControl()
       if(acStandAloneFanIsEnabled == true)
       {
         AIRCON_FAN_OFF();
+        BIT_CLEAR(currentStatus.airConStatus, BIT_AIRCON_FAN);
       }
 
       AIRCON_OFF();

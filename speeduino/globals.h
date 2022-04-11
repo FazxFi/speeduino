@@ -741,7 +741,7 @@ struct statuses {
   long vvt2Duty; //Has to be a long for PID calcs (CL VVT control)
   byte outputsStatus;
   byte TS_SD_Status; //TunerStudios SD card status
-  volatile byte airConStatus; // The air conditioning status bits (see BIT_AIRCON_* defines at the top of this file.)
+  byte airConStatus; // The air conditioning status bits (see BIT_AIRCON_* defines at the top of this file.)
 };
 
 /** Page 2 of the config - mostly variables that are required for fuel.
