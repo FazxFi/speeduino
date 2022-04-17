@@ -402,7 +402,7 @@ void doUpdates()
     configPage10.oilPressureProtEnbl = false;
     configPage10.oilPressureEnable = false;
     configPage10.fuelPressureEnable = false;
-
+    
     //wmi
     configPage10.wmiEnabled = 0;
     configPage10.wmiMode = 0;
@@ -521,6 +521,7 @@ void doUpdates()
 
   if(readEEPROMVersion() == 18)
   {
+    //202202
     configPage2.fanEnable = configPage6.fanUnused; // PWM Fan mode added, but take the previous setting of Fan in use.
 
     //TPS resolution increased to 0.5%
