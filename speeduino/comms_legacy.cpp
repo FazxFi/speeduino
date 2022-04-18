@@ -1046,7 +1046,7 @@ void sendPageASCII()
     case warmupPage:
     case progOutsPage:
 
-    case exFPage:
+    case extraPage:
       Serial.println(F("\nPage 15 Cfg"));
       serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
       break;

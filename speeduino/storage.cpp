@@ -281,7 +281,7 @@ void writeConfig(uint8_t pageNum)
       result = writeTable(&ignitionTable2, ignitionTable2.type_key, { EEPROM_CONFIG14_MAP, 0 });
       break;
 
-    case exFPage:
+    case extraPage:
       /*---------------------------------------------------
       | Config page 15 (See storage.h for data layout)
       | 182 byte long config table

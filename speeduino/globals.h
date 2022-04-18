@@ -1422,8 +1422,8 @@ struct config13 {
 #else
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
-/** Page 15 of the config - no default use.
-See ini file for further info (Config Page 10 in the ini).
+/** Page 15 of the config - Extra Page, no default use.
+See ini file for further info (Config Page 15 in the ini).
 */
 struct config15 {
   byte Unused15_0_127[128]; // Empty for now
