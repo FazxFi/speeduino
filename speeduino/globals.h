@@ -1422,6 +1422,17 @@ struct config13 {
 #else
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
+/** Page 15 of the config - no default use.
+See ini file for further info (Config Page 10 in the ini).
+*/
+struct config15 {
+  byte Unused15_0_127[128]; // Empty for now
+
+#if defined(CORE_AVR)
+  };
+#else
+  } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
+#endif
 
 extern byte pinInjector1; //Output pin injector 1
 extern byte pinInjector2; //Output pin injector 2
@@ -1515,6 +1526,7 @@ extern struct config6 configPage6;
 extern struct config9 configPage9;
 extern struct config10 configPage10;
 extern struct config13 configPage13;
+extern struct config15 configPage15;
 //extern byte cltCalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the coolant sensor calibration values */
 //extern byte iatCalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the inlet air temperature sensor calibration values */
 //extern byte o2CalibrationTable[CALIBRATION_TABLE_SIZE]; /**< An array containing the O2 sensor calibration values */

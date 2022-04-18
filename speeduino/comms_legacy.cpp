@@ -1042,9 +1042,15 @@ void sendPageASCII()
       Serial.println(F("\n2nd Ignition Map"));
       serial_print_3dtable(&ignitionTable2, ignitionTable2.type_key);
       break;
-
+    
     case warmupPage:
     case progOutsPage:
+
+    case exFPage:
+      Serial.println(F("\nPage 15 Cfg"));
+      serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
+      break;
+
     default:
     #ifndef SMALL_FLASH_MODE
         Serial.println(F("\nPage has not been implemented yet"));

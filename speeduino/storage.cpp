@@ -281,6 +281,14 @@ void writeConfig(uint8_t pageNum)
       result = writeTable(&ignitionTable2, ignitionTable2.type_key, { EEPROM_CONFIG14_MAP, 0 });
       break;
 
+    case exFPage:
+      /*---------------------------------------------------
+      | Config page 15 (See storage.h for data layout)
+      | 182 byte long config table
+      -----------------------------------------------------*/
+      result = write_range((byte *)&configPage15, (byte *)&configPage15+sizeof(configPage15), { EEPROM_CONFIG15_START, 0 });
+      break;
+
     default:
       break;
   }
@@ -432,6 +440,10 @@ void loadConfig()
   //SECOND IGNITION CONFIG PAGE (14)
 
   loadTable(&ignitionTable2, ignitionTable2.type_key, EEPROM_CONFIG14_MAP);
+
+  //*********************************************************************************************************************************************************************************
+  //CCONFIG PAGE (15)
+  load_range(EEPROM_CONFIG15_START, (byte *)&configPage15, (byte *)&configPage15+sizeof(configPage15));
 
   //*********************************************************************************************************************************************************************************
 }
