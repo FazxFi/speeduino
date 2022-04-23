@@ -121,7 +121,7 @@ const char header_86[] PROGMEM = "SD Status";
 const char header_87[] PROGMEM = "EMAP";
 const char header_88[] PROGMEM = "Fan Duty";
 /*
-const char header_89[] PROGMEM = "AirCon Status";
+const char header_89[] PROGMEM = "";
 const char header_90[] PROGMEM = "";
 const char header_91[] PROGMEM = "";
 const char header_92[] PROGMEM = "";
