@@ -15,7 +15,6 @@ void nitrousControl();
 void fanControl();
 void airConControl();
 void wmiControl();
-
 bool READ_AIRCON_REQUEST();
 
 #define SIMPLE_BOOST_P  1

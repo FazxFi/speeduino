@@ -579,25 +579,6 @@ void doUpdates()
     configPage4.vvtDelay = 0;
     configPage4.vvtMinClt = 0;
 
-    //Set A/C defoult value
-    //configPage15.airConEnable = 0;
-    /*configPage15.airConAfterStartDelay = 5;
-    configPage15.airConFanEnabled = 0;
-    configPage15.airConClTempCut = 120;
-    configPage15.airConCompOnDelay = 0.5;
-    configPage15.airConCompPol = 0;
-    configPage15.airConReqPol = 0;
-    configPage15.airConTurnsFanOn = 1;
-    configPage15.airConCompPin = 0;
-    configPage15.airConReqPin = 0;
-    configPage15.airConFanPin = 0;
-    configPage15.airConFanPol = 0;
-    configPage15.airConTPSCut = 65;
-    configPage15.airConMinRPMdiv100 = 6;
-    configPage15.airConMaxRPMdiv100 = 47;
-    configPage15.airConIdleSteps = 0;
-    configPage15.airConTPSCutTime = 5.00;
-    configPage15.airConRPMCutTime = 5.00;*/
     
 
     writeAllConfig();
@@ -616,6 +597,9 @@ void doUpdates()
     //CAN broadcast introduced
     configPage2.canBMWCluster = 0;
     configPage2.canVAGCluster = 0;
+
+    //Set A/C defoult to off
+    configPage15.airConEnable = 0;
     
     writeAllConfig();
     storeEEPROMVersion(20);

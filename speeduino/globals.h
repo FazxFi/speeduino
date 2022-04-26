@@ -1464,7 +1464,7 @@ struct config15 {
   byte airConAfterStartDelay;
   byte airConRPMCutTime;
 
-  //Bytes 12-128
+  //Bytes 12-127
   byte Unused15_12_127[116];
 
 #if defined(CORE_AVR)
