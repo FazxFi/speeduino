@@ -883,8 +883,7 @@ Air Conditioning Control
 */
 void initialiseAirCon()
 {
-  if( configPage15.airConEnable == 1 &&
-      (pinAirConRequest != 0 )
+  if( configPage15.airConEnable == 1 && configPage15.airConReqPin !=0 )
   {
     // Hold the A/C off until a few seconds after cranking
     acAfterEngineStartDelay = 0;
@@ -1068,7 +1067,7 @@ void airConControl()
   }
 }
 
-bool READ_AIRCON_REQUEST() // I want to get rid of this or just inmprove it
+bool READ_AIRCON_REQUEST()
 {
   if(acIsEnabled == false)
   {
@@ -1077,6 +1076,7 @@ bool READ_AIRCON_REQUEST() // I want to get rid of this or just inmprove it
   // Read the status of the A/C request pin (A/C button), taking into account the pin's polarity
   bool acReqPinStatus = (configPage15.airConReqPol == 1) ? digitalRead(pinAirConRequest) : !digitalRead(pinAirConRequest) ;
   BIT_WRITE(currentStatus.airConStatus, BIT_AIRCON_REQUEST, acReqPinStatus);
+  
   return acReqPinStatus;
 }
 
