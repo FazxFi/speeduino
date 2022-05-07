@@ -204,9 +204,12 @@ byte pinTachOut;  //Tacho output
 byte pinFuelPump; //Fuel pump on/off
 byte pinIdle1;    //Single wire idle control
 byte pinIdle2;    //2 wire idle control (Not currently used)
+byte pinHBdir1;   //H-bridge Idle direction pin 1
+byte pinHBdir2;   //H-bridge Idle direction pin 2
 byte pinIdleUp;   //Input for triggering Idle Up
 byte pinIdleUpOutput; //Output that follows (normal or inverted) the idle up pin
 byte pinCTPS;     //Input for triggering closed throttle state
+byte pinITPS;     //Input for idle range TPS
 byte pinFuel2Input;  //Input for switching to the 2nd fuel table
 byte pinSpark2Input; //Input for switching to the 2nd ignition table
 byte pinSpareTemp1;  // Future use only

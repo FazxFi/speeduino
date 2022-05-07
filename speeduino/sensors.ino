@@ -439,6 +439,40 @@ void readTPS(bool useFilter)
     else { currentStatus.CTPSActive = digitalRead(pinCTPS); } //Inverted mode (5v activates closed throttle position sensor)
   }
   else { currentStatus.CTPSActive = 0; }
+
+  //REAd ITPS Value
+  if(configPage15.hbiacAlgorithm != 0)
+  {
+    #if defined(ANALOG_ISR)
+      byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A0], 255); //Get the current raw ITPS ADC value and map it into a byte
+    #else
+      analogRead(pinITPS);
+      byte tempITPS = fastMap1023toX(analogRead(pinITPS), 255); //Get the current raw ITPS ADC value and map it into a byte
+    #endif
+
+    currentStatus.itpsADC = ADC_FILTER(tempITPS, configPage4.ADCFILTER_TPS, currentStatus.itpsADC); // Idle range tps shares the adc filter with main tps
+    tempADC = currentStatus.itpsADC;
+
+    if(configPage15.itpsMax > configPage15.itpsMin)
+    {
+      //Check that the ADC values fall within the min and max ranges (Should always be the case, but noise can cause these to fluctuate outside the defined range).
+      if (currentStatus.itpsADC < configPage15.itpsMin) { tempADC = configPage15.itpsMin; }
+      else if(currentStatus.itpsADC > configPage15.itpsMax) { tempADC = configPage15.itpsMax; }
+      currentStatus.ITPS = map(tempADC, configPage15.itpsMin, configPage15.itpsMax, 0, 100); //Take the raw ITPS ADC value and convert it into a ITPS% based on the calibrated values
+    }
+    else
+    {
+      //This case occurs when the ITPS +5v and gnd are wired backwards, but the user wishes to retain this configuration.
+      //In such a case, itpsMin will be greater then itpsMax and hence checks and mapping needs to be reversed
+
+      tempADC = 255 - currentStatus.itpsADC; //Reverse the ADC values
+
+      //All checks below are reversed from the standard case above
+      if (tempADC > configPage15.itpsMin) { tempADC = configPage15.itpsMin; }
+      else if(tempADC < configPage15.itpsMax) { tempADC = configPage15.itpsMax; }
+      currentStatus.ITPS = map(tempADC, configPage15.itpsMax, configPage15.itpsMin, 0, 100);
+    }
+  }
   TPS_time = micros();
 }
 

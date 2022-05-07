@@ -614,7 +614,7 @@ extern volatile byte LOOP_TIMER;
 #define pinIsInjector(pin)  ( ((pin) == pinInjector1) || ((pin) == pinInjector2) || ((pin) == pinInjector3) || ((pin) == pinInjector4) || ((pin) == pinInjector5) || ((pin) == pinInjector6) || ((pin) == pinInjector7) || ((pin) == pinInjector8) )
 #define pinIsIgnition(pin)  ( ((pin) == pinCoil1) || ((pin) == pinCoil2) || ((pin) == pinCoil3) || ((pin) == pinCoil4) || ((pin) == pinCoil5) || ((pin) == pinCoil6) || ((pin) == pinCoil7) || ((pin) == pinCoil8) )
 #define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
-#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinO2) || ((pin) == pinBat) )
+#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinITPS) || ((pin) == pinO2) || ((pin) == pinBat) )
 #define pinIsUsed(pin)      ( pinIsSensor((pin)) || pinIsOutput((pin)) || pinIsReserved((pin)) )
 
 /** The status struct with current values for all 'live' variables.
@@ -637,6 +637,8 @@ struct statuses {
   byte TPS;    /**< The current TPS reading (0% - 100%). Is the tpsADC value after the calibration is applied */
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
   byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
+  long ITPS; /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  byte itpsADC; /**< 0-255 byte representation of the ITPS. Downsampled from the original 10-bit reading, but before any calibration is applied */
   byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
   volatile int rpmDOT; /**< RPM delta over time (RPM increase / s ?) */
   byte VE;     /**< The current VE value being used in the fuel calculation. Can be the same as VE1 or VE2, or a calculated value of both. */
@@ -700,7 +702,7 @@ struct statuses {
   byte testOutputs;   ///< Test Output bits (only first bit used/tested ?)
   bool testActive;    // Not in use ? Replaced by testOutputs ?
   uint16_t boostDuty; ///< Boost Duty percentage value * 100 to give 2 points of precision
-  byte idleLoad;      ///< Either the current steps or current duty cycle for the idle control
+  uint16_t idleLoad;      ///< Either the current steps or current duty cycle for the idle control
   uint16_t canin[16]; ///< 16bit raw value of selected canin data for channels 0-15
   uint8_t current_caninchannel = 0; /**< Current CAN channel, defaults to 0 */
   uint16_t crankRPM = 400; /**< The actual cranking RPM limit. This is derived from the value in the config page, but saves us multiplying it every time it's used (Config page value is stored divided by 10) */
@@ -1433,8 +1435,25 @@ struct config13 {
 See ini file for further info (Config Page 15 in the ini).
 */
 struct config15 {
-  //Bytes 0-128
-  byte Unused15_0_127[128];
+  //Bytes 0-9
+  byte itpsMin;
+  byte itpsMax;
+  byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
+  byte hbDriver :           2; // valid option is "None", "VNH2SP30", "", "" for now
+  byte itpsPin :            4;
+  byte pinIdle1 :           6;
+  byte unused_idle_bits2 :  2;
+  byte pinIdle2 :           6;
+  byte unused_idle_bits3 :  2;
+  byte hbDirPin1 :          6;
+  byte unused_idle_bits4 :  2;
+  byte hbDirPin2 :          6;
+  byte unused_idle_bits5 :  2;
+  uint16_t idleSens;
+  byte idleIntv;
+  
+  //Bytes 10-127
+  byte Unused15_10_127[118];
 
 #if defined(CORE_AVR)
   };
@@ -1477,9 +1496,12 @@ extern byte pinTachOut; //Tacho output
 extern byte pinFuelPump; //Fuel pump on/off
 extern byte pinIdle1; //Single wire idle control
 extern byte pinIdle2; //2 wire idle control (Not currently used)
+extern byte pinHBdir1; //H-bridge Idle direction pin 1
+extern byte pinHBdir2; //H-bridge Idle direction pin 2
 extern byte pinIdleUp; //Input for triggering Idle Up
 extern byte pinIdleUpOutput; //Output that follows (normal or inverted) the idle up pin
 extern byte pinCTPS; //Input for triggering closed throttle state
+extern byte pinITPS; //Input for idle range TPS
 extern byte pinFuel2Input; //Input for switching to the 2nd fuel table
 extern byte pinSpark2Input; //Input for switching to the 2nd ignition table
 extern byte pinSpareTemp1; // Future use only

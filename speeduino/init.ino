@@ -2560,6 +2560,9 @@ void setPinMapping(byte boardID)
   if ( (configPage10.wmiEnabledPin != 0) && (configPage10.wmiEnabledPin < BOARD_MAX_IO_PINS) ) { pinWMIEnabled = pinTranslate(configPage10.wmiEnabledPin); }
   if ( (configPage10.vvt2Pin != 0) && (configPage10.vvt2Pin < BOARD_MAX_IO_PINS) ) { pinVVT_2 = pinTranslate(configPage10.vvt2Pin); }
 
+  if ( (configPage15.pinIdle1 != 0) && (configPage15.pinIdle1 < BOARD_MAX_IO_PINS) ) { pinIdle1 = pinTranslate(configPage15.pinIdle1); }
+  if ( (configPage15.pinIdle2 != 0) && (configPage15.pinIdle2 < BOARD_MAX_IO_PINS) ) { pinIdle2 = pinTranslate(configPage15.pinIdle2); }
+
 
   //Currently there's no default pin for Idle Up
   pinIdleUp = pinTranslate(configPage2.idleUpPin);
@@ -2569,6 +2572,15 @@ void setPinMapping(byte boardID)
 
   //Currently there's no default pin for closed throttle position sensor
   pinCTPS = pinTranslate(configPage2.CTPSPin);
+
+  //Currently there's no default pin for idle throttle position sensor
+  pinITPS = pinTranslate(configPage15.itpsPin);
+
+  //Currently there's no default pin for H-Bridge driver direction 1
+  pinHBdir1 = pinTranslate(configPage15.hbDirPin1);
+
+  //Currently there's no default pin for H-Bridge driver direction 2
+  pinHBdir2 = pinTranslate(configPage15.hbDirPin2);
 
   /* Reset control is a special case. If reset control is enabled, it needs its initial state set BEFORE its pinMode.
      If that doesn't happen and reset control is in "Serial Command" mode, the Arduino will end up in a reset loop
@@ -2595,6 +2607,8 @@ void setPinMapping(byte boardID)
   pinMode(pinBoost, OUTPUT);
   pinMode(pinVVT_1, OUTPUT);
   pinMode(pinVVT_2, OUTPUT);
+  pinMode(pinHBdir1, OUTPUT);
+  pinMode(pinHBdir2, OUTPUT);
 
 
 
@@ -2703,6 +2717,7 @@ void setPinMapping(byte boardID)
       pinMode(pinO2, INPUT_ANALOG);
       pinMode(pinO2_2, INPUT_ANALOG);
       pinMode(pinTPS, INPUT_ANALOG);
+      pinMode(pinITPS, INPUT_ANALOG);
       pinMode(pinIAT, INPUT_ANALOG);
       pinMode(pinCLT, INPUT_ANALOG);
       pinMode(pinBat, INPUT_ANALOG);
@@ -2712,6 +2727,7 @@ void setPinMapping(byte boardID)
       pinMode(pinO2, INPUT);
       pinMode(pinO2_2, INPUT);
       pinMode(pinTPS, INPUT);
+      pinMode(pinITPS, INPUT);
       pinMode(pinIAT, INPUT);
       pinMode(pinCLT, INPUT);
       pinMode(pinBat, INPUT);

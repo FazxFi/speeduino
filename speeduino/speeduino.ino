@@ -293,7 +293,7 @@ void loop()
       BIT_CLEAR(TIMER_mask, BIT_TIMER_10HZ);
       //updateFullStatus();
       checkProgrammableIO();
-      idleControl(); //Perform any idle related actions. This needs to be run at 10Hz to align with the idle taper resolution of 0.1s
+      idleControl();//Perform any idle related actions. This needs to be run at 10Hz to align with the idle taper resolution of 0.1s
 
       //if( (isEepromWritePending() == true) && (serialReceivePending == false) && (micros() > deferEEPROMWritesUntil)) { writeAllConfig(); } //Used for slower EEPROM writes (Currently this runs in the 30Hz block)
       
@@ -437,9 +437,10 @@ void loop()
 
     if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
+    || (configPage15.hbiacAlgorithm > 0) )
     {
-      idleControl(); //Run idlecontrol every loop for stepper idle.
+      idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }
 
     
