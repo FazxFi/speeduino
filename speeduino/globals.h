@@ -1455,7 +1455,7 @@ struct config15 {
 
   //Bytes 4-11 - Air conditioning parameter 
   byte airConTPSCut;
-  byte airConMinRPMdiv100;
+  byte airConMinRPMdiv16;
   byte airConMaxRPMdiv100;
   byte airConClTempCut;
   byte airConIdleSteps;
