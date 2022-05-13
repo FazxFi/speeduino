@@ -17,6 +17,10 @@ void wmiControl();
 void initialiseAirCon();
 bool READ_AIRCON_REQUEST();
 
+static inline void checkAirConCoolantLockout();
+static inline void checkAirConTPSLockout();
+static inline void checkAirConRPMLockout();
+
 #define SIMPLE_BOOST_P  1
 #define SIMPLE_BOOST_I  1
 #define SIMPLE_BOOST_D  1
