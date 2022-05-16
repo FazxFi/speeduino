@@ -16,13 +16,18 @@
 
 #define HB_IAC_ALGORITHM_NONE     0
 #define HB_IAC_ALGORITHM_DEFAULT  1
-#define HB_IAC_ALGORITHM_UNUSED1  2
-#define HB_IAC_ALGORITHM_UNUSED2  3
+#define HB_IAC_ALGORITHM_UPDATED  2
+#define HB_IAC_ALGORITHM_CL       3
 
 #define IDLE_PIN_LOW()  *idle_pin_port &= ~(idle_pin_mask)
 #define IDLE_PIN_HIGH() *idle_pin_port |= (idle_pin_mask)
 #define IDLE2_PIN_LOW()  *idle2_pin_port &= ~(idle2_pin_mask)
 #define IDLE2_PIN_HIGH() *idle2_pin_port |= (idle2_pin_mask)
+
+#define HB_DIR_PIN_1_LOW()  *hbDir1_pin_port &= ~(hbDir1_pin_mask)
+#define HB_DIR_PIN_1_HIGH()  *hbDir1_pin_port |= (hbDir1_pin_mask)
+#define HB_DIR_PIN_2_LOW()  *hbDir2_pin_port &= ~(hbDir2_pin_mask)
+#define HB_DIR_PIN_2_HIGH()  *hbDir2_pin_port |= (hbDir2_pin_mask)
 
 #define STEPPER_FORWARD 0
 #define STEPPER_BACKWARD 1

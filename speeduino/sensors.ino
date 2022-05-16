@@ -439,6 +439,8 @@ void readTPS(bool useFilter)
     else { currentStatus.CTPSActive = digitalRead(pinCTPS); } //Inverted mode (5v activates closed throttle position sensor)
   }
   else { currentStatus.CTPSActive = 0; }
+  
+  BIT_WRITE(currentStatus.status4, BIT_STATUS4_CTPS_STATUS, currentStatus.CTPSActive);
 
   //REAd ITPS Value
   if(configPage15.hbiacAlgorithm != 0)
