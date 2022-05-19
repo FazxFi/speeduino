@@ -15,11 +15,7 @@ void fanControl();
 void airConControl();
 void wmiControl();
 void initialiseAirCon();
-bool READ_AIRCON_REQUEST();
 
-static inline void checkAirConCoolantLockout();
-static inline void checkAirConTPSLockout();
-static inline void checkAirConRPMLockout();
 
 #define SIMPLE_BOOST_P  1
 #define SIMPLE_BOOST_I  1
@@ -96,6 +92,7 @@ void fanInterrupt();
 uint32_t vvtWarmTime;
 bool vvtIsHot;
 bool vvtTimeHold;
+bool READ_AIRCON_REQUEST();
 
 
 volatile bool vvt1_pwm_state;
