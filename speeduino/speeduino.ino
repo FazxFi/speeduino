@@ -438,7 +438,9 @@ void loop()
     if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
-    || (configPage15.hbiacAlgorithm > 0) )
+    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_DEFAULT)
+    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_UPDATED)
+    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_CL) )
     {
       idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }

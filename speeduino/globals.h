@@ -1434,7 +1434,7 @@ struct config13 {
 See ini file for further info (Config Page 15 in the ini).
 */
 struct config15 {
-  //Bytes 0-9
+  //Bytes 0-11
   byte itpsMin;
   byte itpsMax;
   byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
@@ -1450,9 +1450,11 @@ struct config15 {
   byte unused_idle_bits5 :  2;
   uint16_t idleSens;
   byte idleIntv;
+  byte hbRpmbelow;
+  byte tpsThrehHold;
   
-  //Bytes 10-127
-  byte Unused15_10_127[118];
+  //Bytes 12-127
+  byte Unused15_12_127[116];
 
 #if defined(CORE_AVR)
   };
