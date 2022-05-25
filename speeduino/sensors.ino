@@ -397,8 +397,7 @@ static inline void readMAP()
 
 void readTPS(bool useFilter)
 {
-  TPSlast = currentStatus.TPS;
-  TPSlast_time = TPS_time;
+  currentStatus.TPSlast = currentStatus.TPS;
   #if defined(ANALOG_ISR)
     byte tempTPS = fastMap1023toX(AnChannel[pinTPS-A0], 255); //Get the current raw TPS ADC value and map it into a byte
   #else
@@ -475,7 +474,6 @@ void readTPS(bool useFilter)
       currentStatus.ITPS = map(tempADC, configPage15.itpsMax, configPage15.itpsMin, 0, 100);
     }
   }
-  TPS_time = micros();
 }
 
 void readCLT(bool useFilter)
