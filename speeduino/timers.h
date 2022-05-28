@@ -29,6 +29,12 @@ enum TachoOutputStatus {DEACTIVE, READY, ACTIVE}; //The 3 statuses that the tach
 volatile uint8_t tachoEndTime; //The time (in ms) that the tacho pulse needs to end at
 volatile TachoOutputStatus tachoOutputFlag;
 
+volatile bool hbSweepEnabled;
+volatile uint16_t hbSweepIncr;
+volatile uint16_t hbSweepAccum;
+#define HB_SWEEP_TIME_MS 1500
+#define HB_SWEEP_RAMP_MS (HB_SWEEP_TIME_MS * 2 / 3)
+
 volatile byte loop33ms;
 volatile byte loop66ms;
 volatile byte loop100ms;

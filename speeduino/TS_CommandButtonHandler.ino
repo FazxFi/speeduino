@@ -370,6 +370,7 @@ void TS_CommandButtonsHandler(uint16_t buttonCommand)
       {
         //
       }
+      break;
 
     //STM32 Commands
     case TS_CMD_STM32_REBOOT: //

@@ -1211,6 +1211,12 @@ void initialiseAll()
     readCLT(false); // Need to read coolant temp to make priming pulsewidth work correctly. The false here disables use of the filter
     readTPS(false); // Need to read tps to detect flood clear state
 
+    /* H-bridge/iac sweep function. */
+    hbSweepEnabled = (configPage15.useHBsweep > 0);
+    /* SweepMax is stored as a byte, RPM/100. divide by 60 to convert min to sec (net 5/3).  Multiply by ignition pulses per rev.
+       tachoSweepIncr is also the number of tach pulses per second */
+    hbSweepIncr = configPage15.hbSweepmaxDuty * maxIgnOutputs * 5 / 3;
+
     initialisationComplete = true;
     digitalWrite(LED_BUILTIN, HIGH);
 }
@@ -2618,8 +2624,8 @@ void setPinMapping(byte boardID)
   if ( (configPage10.wmiEnabledPin != 0) && (configPage10.wmiEnabledPin < BOARD_MAX_IO_PINS) ) { pinWMIEnabled = pinTranslate(configPage10.wmiEnabledPin); }
   if ( (configPage10.vvt2Pin != 0) && (configPage10.vvt2Pin < BOARD_MAX_IO_PINS) ) { pinVVT_2 = pinTranslate(configPage10.vvt2Pin); }
 
-  if ( (configPage15.pinIdle1 != 0) && (configPage15.pinIdle1 < BOARD_MAX_IO_PINS) ) { pinIdle1 = pinTranslate(configPage15.pinIdle1); }
-  if ( (configPage15.pinIdle2 != 0) && (configPage15.pinIdle2 < BOARD_MAX_IO_PINS) ) { pinIdle2 = pinTranslate(configPage15.pinIdle2); }
+  if ( (configPage15.Idle_pin_1 != 0) && (configPage15.Idle_pin_1 < BOARD_MAX_IO_PINS) ) { pinIdle1 = pinTranslate(configPage15.Idle_pin_1); }
+  if ( (configPage15.Idle_pin_2 != 0) && (configPage15.Idle_pin_2 < BOARD_MAX_IO_PINS) ) { pinIdle2 = pinTranslate(configPage15.Idle_pin_2); }
 
 
   //Currently there's no default pin for Idle Up

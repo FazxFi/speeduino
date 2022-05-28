@@ -340,7 +340,7 @@ void loop()
       nitrousControl();
 
       //Lookup the current target idle RPM. This is aligned with coolant and so needs to be calculated at the same rate CLT is read
-      if( (configPage2.idleAdvEnabled >= 1) || (configPage6.iacAlgorithm != IAC_ALGORITHM_NONE) )
+      if( (configPage2.idleAdvEnabled >= 1) || (configPage15.iacAlgorithm != IAC_ALGORITHM_NONE) )
       {
         currentStatus.CLIdleTarget = (byte)table2D_getValue(&idleTargetTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
       }
@@ -435,12 +435,12 @@ void loop()
 
     } //1Hz timer
 
-    if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
-    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_DEFAULT)
-    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_UPDATED)
-    || (configPage15.hbiacAlgorithm == HB_IAC_ALGORITHM_CL) )
+    if( (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT)
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED)
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) )
     {
       idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }

@@ -287,6 +287,7 @@ int16_t getReadableLogEntry(uint16_t logIndex)
     case 86: statusValue = currentStatus.TS_SD_Status; break; //SD card status
     case 87: statusValue = currentStatus.EMAP; break;
     case 88: statusValue = currentStatus.fanDuty; break;
+    case 89: statusValue = currentStatus.ITPS; break;
   }
 
   return statusValue;

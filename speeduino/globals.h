@@ -227,7 +227,7 @@
 #define BIT_STATUS4_FAN           3 //Fan Status
 #define BIT_STATUS4_BURNPENDING   4
 #define BIT_STATUS4_CTPS_STATUS   5 // Indicates weather the Throtlle is close or open 
-#define BIT_STATUS4_UNUSED7       6
+#define BIT_STATUS4_IDLETEST      6
 #define BIT_STATUS4_UNUSED8       7
 
 #define VALID_MAP_MAX 1022 //The largest ADC value that is valid for the MAP sensor
@@ -613,7 +613,7 @@ extern volatile byte LOOP_TIMER;
 //These functions all do checks on a pin to determine if it is already in use by another (higher importance) function
 #define pinIsInjector(pin)  ( ((pin) == pinInjector1) || ((pin) == pinInjector2) || ((pin) == pinInjector3) || ((pin) == pinInjector4) || ((pin) == pinInjector5) || ((pin) == pinInjector6) || ((pin) == pinInjector7) || ((pin) == pinInjector8) )
 #define pinIsIgnition(pin)  ( ((pin) == pinCoil1) || ((pin) == pinCoil2) || ((pin) == pinCoil3) || ((pin) == pinCoil4) || ((pin) == pinCoil5) || ((pin) == pinCoil6) || ((pin) == pinCoil7) || ((pin) == pinCoil8) )
-#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) || ((pin) == pinHBdir1) || ((pin) == pinHBdir2) )
+#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ( ((pin) == pinIdle2) && configPage6.iacChannels) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) || ((pin) == pinHBdir1) || ((pin) == pinHBdir2) )
 #define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinITPS) || ((pin) == pinO2) || ((pin) == pinBat) )
 #define pinIsUsed(pin)      ( pinIsSensor((pin)) || pinIsOutput((pin)) || pinIsReserved((pin)) )
 
@@ -1099,7 +1099,8 @@ struct config6 {
   byte iacCrankDuty[4]; //Duty cycle to use on PWM valves when cranking
   byte iacCrankBins[4]; //Temperature Bins for the above 2 curves
 
-  byte iacAlgorithm : 3; //Valid values are: "None", "On/Off", "PWM", "PWM Closed Loop", "Stepper", "Stepper Closed Loop"
+  //byte iacAlgorithm : 3; //Valid values are: "None", "On/Off", "PWM", "PWM Closed Loop", "Stepper", "Stepper Closed Loop"
+  byte iacUnused  : 3;
   byte iacStepTime : 3; //How long to pulse the stepper for to ensure the step completes (ms)
   byte iacChannels : 1; //How many outputs to use in PWM mode (0 = 1 channel, 1 = 2 channels)
   byte iacPWMdir : 1; //Direction of the PWM valve. 0 = Normal = Higher RPM with more duty. 1 = Reverse = Lower RPM with more duty
@@ -1435,27 +1436,34 @@ struct config13 {
 See ini file for further info (Config Page 15 in the ini).
 */
 struct config15 {
-  //Bytes 0-11
+  //Bytes 0
+  //byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
+  byte iacAlgorithm :       4;
+  byte hbControl :          2; // valid option is "None", "Enable", "", "" for now
+  byte useHBsweep :         1; // Sweep function for hb idle control and maybe can be use for normal iac 
+  byte unused_idle_bits1 :  1;
+  //Bytes 1-12
   byte itpsMin;
   byte itpsMax;
-  byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
-  byte hbDriver :           2; // valid option is "None", "VNH2SP30", "", "" for now
   byte itpsPin :            4; // Sellectble Analog Pin
-  byte pinIdle1 :           6;
   byte unused_idle_bits2 :  2;
-  byte pinIdle2 :           6;
+  byte Idle_pin_1 :         6;
   byte unused_idle_bits3 :  2;
-  byte hbDirPin1 :          6;
+  byte Idle_pin_2 :         6;
   byte unused_idle_bits4 :  2;
-  byte hbDirPin2 :          6;
+  byte hbDirPin1 :          6;
   byte unused_idle_bits5 :  2;
+  byte hbDirPin2 :          6;
+  byte unused_idle_bits6 :  2;
   uint16_t idleSens;
   byte idleIntv;
   byte hbRpmbelow;
   byte tpsThrehHold;
+  byte hbSweep;
+  byte hbSweepmaxDuty;
   
-  //Bytes 12-127
-  byte Unused15_12_127[116];
+  //Bytes 15-127
+  byte Unused15_15_127[113];
 
 #if defined(CORE_AVR)
   };

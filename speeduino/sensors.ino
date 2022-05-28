@@ -442,7 +442,7 @@ void readTPS(bool useFilter)
   BIT_WRITE(currentStatus.status4, BIT_STATUS4_CTPS_STATUS, currentStatus.CTPSActive);
 
   //REAd ITPS Value
-  if(configPage15.hbiacAlgorithm != 0)
+  if(configPage15.iacAlgorithm >= 8)
   {
     #if defined(ANALOG_ISR)
       byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A0], 255); //Get the current raw ITPS ADC value and map it into a byte
@@ -627,7 +627,7 @@ void readBat()
     FUEL_PUMP_ON();
 
     //Redo the stepper homing
-    if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL) )
+    if( (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OL) )
     {
       initialiseIdle();
     }

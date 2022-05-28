@@ -5,19 +5,18 @@
 #include "table2d.h"
 #include BOARD_H //Note that this is not a real file, it is defined in globals.h. 
 
-#define IAC_ALGORITHM_NONE    0
-#define IAC_ALGORITHM_ONOFF   1
-#define IAC_ALGORITHM_PWM_OL  2
-#define IAC_ALGORITHM_PWM_CL  3
-#define IAC_ALGORITHM_STEP_OL 4
-#define IAC_ALGORITHM_STEP_CL 5
-#define IAC_ALGORITHM_PWM_OLCL  6 //Openloop plus closedloop IAC control
-#define IAC_ALGORITHM_STEP_OLCL  7 //Openloop plus closedloop IAC control
+#define IAC_ALGORITHM_NONE        0
+#define IAC_ALGORITHM_ONOFF       1
+#define IAC_ALGORITHM_PWM_OL      2
+#define IAC_ALGORITHM_PWM_CL      3
+#define IAC_ALGORITHM_STEP_OL     4
+#define IAC_ALGORITHM_STEP_CL     5
+#define IAC_ALGORITHM_PWM_OLCL    6 //Openloop plus closedloop IAC control
+#define IAC_ALGORITHM_STEP_OLCL   7 //Openloop plus closedloop IAC control
 
-#define HB_IAC_ALGORITHM_NONE     0
-#define HB_IAC_ALGORITHM_DEFAULT  1
-#define HB_IAC_ALGORITHM_UPDATED  2
-#define HB_IAC_ALGORITHM_CL       3
+#define IAC_ALGORITHM_HB_DEFAULT  8
+#define IAC_ALGORITHM_HB_UPDATED  9
+#define IAC_ALGORITHM_HB_CL       10
 
 #define IDLE_PIN_LOW()  *idle_pin_port &= ~(idle_pin_mask)
 #define IDLE_PIN_HIGH() *idle_pin_port |= (idle_pin_mask)
