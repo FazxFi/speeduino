@@ -1436,22 +1436,28 @@ struct config13 {
 #else
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
-/** Page 15 of the config - Extra Page, no default use.
-See ini file for further info (Config Page 15 in the ini).
+
+/**
+Page 15 - second page for VVT and boost control.
+256 bytes long. 
 */
 struct config15 {
-  //Bytes 0
+  byte boostControlEnable : 1; 
+  byte unused15_1 : 7; //7bits unused
+  byte boostDCWhenDisabled;
+  byte boostControlEnableThreshold; //if fixed value enable set threshold here.
+
+  //Bytes 83-95  H-Bridge
   //byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
   byte iacAlgorithm :       4;
   byte hbControl :          2; // valid option is "None", "Enable", "", "" for now
   byte useHBsweep :         1; // Sweep function for hb idle control and maybe can be use for normal iac 
   byte unused_idle_bits1 :  1;
-  //Bytes 1-12
   byte itpsMin;
   byte itpsMax;
-  byte itpsPin :            4; // Sellectble Analog Pin
+  byte itpsPin :            4; // Selactable Analog Pin for ITPS
   byte unused_idle_bits2 :  2;
-  byte Idle_pin_1 :         6;
+  byte Idle_pin_1 :         6; 
   byte unused_idle_bits3 :  2;
   byte Idle_pin_2 :         6;
   byte unused_idle_bits4 :  2;
@@ -1463,28 +1469,8 @@ struct config15 {
   byte idleIntv;
   byte hbRpmbelow;
   byte tpsThrehHold;
-  byte hbSweep;
-  byte hbSweepmaxDuty;
-  
-  //Bytes 15-127
-  byte Unused15_15_127[113];
 
-#if defined(CORE_AVR)
-  };
-#else
-  } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
-#endif
-
-/**
-Page 15 - second page for VVT and boost control.
-256 bytes long. 
-*/
-struct config15 {
-  byte boostControlEnable : 1; 
-  byte unused15_1 : 7; //7bits unused
-  byte boostDCWhenDisabled;
-  byte boostControlEnableThreshold; //if fixed value enable set threshold here.
-  byte unused15_3_176[173];
+  byte unused15_96_256[160];
 
 #if defined(CORE_AVR)
   };
