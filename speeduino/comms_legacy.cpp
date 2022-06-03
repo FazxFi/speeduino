@@ -1043,13 +1043,13 @@ void sendPageASCII()
       serial_print_3dtable(&ignitionTable2, ignitionTable2.type_key);
       break;
     
+    case boostvvtPage2:
+      Serial.println(F("\nBoost lookup table"));
+      serial_print_3dtable(&boostTableLookupDuty, boostTableLookupDuty.type_key);
+      break;
+
     case warmupPage:
     case progOutsPage:
-
-    case extraPage:
-      Serial.println(F("\nPage 15 Cfg"));
-      serial_println_range((byte *)&configPage15, (byte *)&configPage15 + sizeof(configPage15));
-      break;
 
     default:
     #ifndef SMALL_FLASH_MODE
