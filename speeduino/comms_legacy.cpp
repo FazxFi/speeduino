@@ -135,6 +135,12 @@ void legacySerialCommand()
           TS_CommandButtonsHandler(cmdCombined);
           cmdPending = false;
         }
+        else if( (cmdCombined >= TS_CMD_ITPS_MIN) && (cmdCombined <= TS_CMD_ITPS_MAX) )
+        {
+          //ITPS Calibration command
+          TS_CommandButtonsHandler(cmdCombined);
+          cmdPending = false;
+        }
         else if( (cmdCombined >= TS_CMD_STM32_REBOOT) && (cmdCombined <= TS_CMD_STM32_BOOTLOADER) )
         {
           //STM32 DFU mode button
