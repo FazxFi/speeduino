@@ -1443,40 +1443,6 @@ struct config13 {
 #else
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
-/** Page 15 of the config - Extra Page, no default use.
-See ini file for further info (Config Page 15 in the ini).
-*/
-struct config15 {
-  //Byte 0 - 3 Air conditioning setup
-  byte airConEnable     :1;
-  byte airConReqPol     :1;
-  byte airConReqPin     :6; //8
-  byte airConCompPol    :1;
-  byte airConCompPin    :6; 
-  byte airConTurnsFanOn :1; //8
-  byte airConFanEnabled :1;
-  byte airConFanPol     :1;
-  byte airConFanPin     :6; //8
-
-  //Bytes 4-11 - Air conditioning parameter 
-  byte airConTPSCut;
-  byte airConMinRPMdiv10;
-  byte airConMaxRPMdiv100;
-  byte airConClTempCut;
-  byte airConIdleSteps;
-  byte airConTPSCutTime;
-  byte airConCompOnDelay;
-  byte airConAfterStartDelay;
-  byte airConRPMCutTime;
-
-  //Bytes 12-127
-  byte Unused15_12_127[116];
-
-#if defined(CORE_AVR)
-  };
-#else
-  } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
-#endif
 
 /**
 Page 15 - second page for VVT and boost control.
@@ -1487,7 +1453,31 @@ struct config15 {
   byte unused15_1 : 7; //7bits unused
   byte boostDCWhenDisabled;
   byte boostControlEnableThreshold; //if fixed value enable set threshold here.
-  byte unused15_3_176[173];
+  
+  //Byte 83 - 85 Air conditioning setup
+  byte airConEnable     :1;
+  byte airConReqPol     :1;
+  byte airConReqPin     :6; //8
+  byte airConCompPol    :1;
+  byte airConCompPin    :6; 
+  byte airConTurnsFanOn :1; //8
+  byte airConFanEnabled :1;
+  byte airConFanPol     :1;
+  byte airConFanPin     :6; //8
+
+  //Bytes 86-94 - Air conditioning parameter 
+  byte airConTPSCut;
+  byte airConMinRPMdiv10;
+  byte airConMaxRPMdiv100;
+  byte airConClTempCut;
+  byte airConIdleSteps;
+  byte airConTPSCutTime;
+  byte airConCompOnDelay;
+  byte airConAfterStartDelay;
+  byte airConRPMCutTime;
+
+  //Bytes 95-255
+  byte unused15_95_255[161];
 
 #if defined(CORE_AVR)
   };
