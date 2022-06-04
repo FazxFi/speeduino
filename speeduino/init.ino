@@ -1211,12 +1211,6 @@ void initialiseAll()
     readCLT(false); // Need to read coolant temp to make priming pulsewidth work correctly. The false here disables use of the filter
     readTPS(false); // Need to read tps to detect flood clear state
 
-    /* H-bridge/iac sweep function. */
-    hbSweepEnabled = (configPage15.useHBsweep > 0);
-    /* SweepMax is stored as a byte, RPM/100. divide by 60 to convert min to sec (net 5/3).  Multiply by ignition pulses per rev.
-       tachoSweepIncr is also the number of tach pulses per second */
-    hbSweepIncr = configPage15.hbSweepmaxDuty * maxIgnOutputs * 5 / 3;
-
     initialisationComplete = true;
     digitalWrite(LED_BUILTIN, HIGH);
 }

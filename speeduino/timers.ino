@@ -122,30 +122,6 @@ void oneMSInterval() //Most ARM chips can simply call a function
   
   // Tacho output calculations.  
 
-  // See if we're in power-on sweep mode
-  if( hbSweepEnabled )
-  {
-    if( (currentStatus.engine != 0) || (ms_counter >= HB_SWEEP_TIME_MS) )  { hbSweepEnabled = false; }  // Stop the sweep after SWEEP_TIME, or if real tach signals have started
-    else 
-    {
-      // Ramp the needle smoothly to the max over the SWEEP_TIME
-      if( ms_counter < HB_SWEEP_RAMP_MS )
-        hbSweepAccum += map(ms_counter, 0, HB_SWEEP_RAMP_MS, 0, hbSweepIncr);
-      else
-        hbSweepAccum += hbSweepIncr;
-
-      // Each time it rolls over, it's time to pulse the Tach
-      if( hbSweepAccum >= MS_PER_SEC ) 
-      {  
-        //hbOutputFlag = READY;
-        hbSweepAccum -= MS_PER_SEC;
-      }
-    }
-  }
-
-  //Tacho is flagged as being ready for a pulse by the ignition outputs, or the sweep interval upon startup
-
-
 
   //30Hz loop
   if (loop33ms == 33)

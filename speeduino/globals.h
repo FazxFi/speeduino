@@ -1451,12 +1451,11 @@ struct config15 {
   //byte hbiacAlgorithm :     2; // valid option is "Disable", "Default", "", "" for now.
   byte iacAlgorithm :       4;
   byte hbControl :          2; // valid option is "None", "Enable", "", "" for now
-  byte useHBsweep :         1; // Sweep function for hb idle control and maybe can be use for normal iac 
-  byte unused_idle_bits1 :  1;
+  byte unused_idle_bits1 :  2;
   byte itpsMin;
   byte itpsMax;
   byte itpsPin :            4; // Selactable Analog Pin for ITPS
-  byte unused_idle_bits2 :  2;
+  byte unused_idle_bits2 :  4;
   byte Idle_pin_1 :         6; 
   byte unused_idle_bits3 :  2;
   byte Idle_pin_2 :         6;
