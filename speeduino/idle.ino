@@ -14,16 +14,18 @@ These functions cover the PWM and stepper idle control
 
 /*
 Idle Control
-Currently limited to on/off control and open loop PWM and stepper drive
+Currently limited to on/off control and open loop PWM and stepper drive \bookmark/
 */
 integerPID        idlePID(&currentStatus.longRPM, &idle_pid_target_value, &idle_cl_target_rpm, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
+integerPID        itpsPID(&currentStatus.ITPS, &idle_pid_itps_target_value, &idle_target_itps, /*&configPage15.idleSens, &configPage15.idleIntv,*/ configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
 integerPID_ideal  idleHB_PID(&currentStatus.ITPS, &idle_pid_hb_target_value, &currentStatus.idleLoad, &configPage15.idleSens, &configPage15.idleIntv, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
 
 //Any common functions associated with starting the Idle
 //Typically this is enabling the PWM interrupt
 static inline void enableIdle()
 {
-  if( (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) )
+  if( (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) 
+  || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) )
   {
     IDLE_TIMER_ENABLE();
   }
@@ -346,6 +348,60 @@ void initialiseIdle()
       idleCounter = 0;
 
       break;
+
+    case IAC_ALGORITHM_HB_ITPS_OL:
+      //Case 11 is for OL ITPS Based idle control
+      hbITPSTable.xSize = 10;
+      hbITPSTable.valueSize = SIZE_BYTE;
+      hbITPSTable.axisSize = SIZE_BYTE;
+      hbITPSTable.values = configPage15.hbOLITPSVal;
+      hbITPSTable.axisX = configPage6.iacBins;
+      
+      hbCrankPositionTable.xSize = 4;
+      hbCrankPositionTable.valueSize = SIZE_BYTE;
+      hbCrankPositionTable.axisSize = SIZE_BYTE;
+      hbCrankPositionTable.values = configPage15.hbCrankPosition;
+      hbCrankPositionTable.axisX = configPage6.iacCrankBins;
+
+      #if defined(CORE_AVR)
+        idle_pwm_max_count = 1000000L / (16 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 16uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #elif defined(CORE_TEENSY35)
+        idle_pwm_max_count = 1000000L / (32 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 32uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #elif defined(CORE_TEENSY41)
+        idle_pwm_max_count = 1000000L / (2 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 2uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #endif
+      enableIdle();
+      break;
+
+    case IAC_ALGORITHM_HB_ITPS_OL2:
+      //Case 12 is for OL & PID ITPS Based idle control
+      hbITPSTable.xSize = 10;
+      hbITPSTable.valueSize = SIZE_BYTE;
+      hbITPSTable.axisSize = SIZE_BYTE;
+      //hbPWMTable.values = configPage15.hbOLPosition
+      hbITPSTable.axisX = configPage6.iacBins;
+      
+      hbCrankPositionTable.xSize = 4;
+      hbCrankPositionTable.valueSize = SIZE_BYTE;
+      hbCrankPositionTable.axisSize = SIZE_BYTE;
+      hbCrankPositionTable.values = configPage15.hbCrankPosition;
+      hbCrankPositionTable.axisX = configPage6.iacCrankBins;
+
+      #if defined(CORE_AVR)
+        idle_pwm_max_count = 1000000L / (16 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 16uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #elif defined(CORE_TEENSY)
+        idle_pwm_max_count = 1000000L / (32 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 32uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #elif defined(CORE_TEENSY41)
+        idle_pwm_max_count = 1000000L / (2 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 2uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
+      #endif
+      itpsPID.SetOutputLimits(percentage(configPage2.iacCLminDuty, idle_pwm_max_count<<2), percentage(configPage2.iacCLmaxDuty, idle_pwm_max_count<<2));
+      itpsPID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
+      itpsPID.SetMode(AUTOMATIC); //Turn PID on
+      idle_pid_itps_target_value = 0;
+      itpsPID.Initialize();
+      idleCounter = 0;
+
+      break;
     
     default:
       //Well this just shouldn't happen
@@ -531,8 +587,6 @@ void idleControl()
   }
   else { currentStatus.idleUpActive = false; }
 
-  //if ( configPage15.useHBsweep == 1)
-
   bool PID_computed = false;
   switch(configPage15.iacAlgorithm)
   {
@@ -598,7 +652,7 @@ void idleControl()
 
       break;
 
-    case IAC_ALGORITHM_PWM_CL:    //Case 3 is PWM closed loop
+    case IAC_ALGORITHM_PWM_CL:    //Case 3 is PWM closed loop  \bookmark/
         //No cranking specific value for closed loop (yet?)
       if( BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK) )
       {
@@ -643,7 +697,7 @@ void idleControl()
         currentStatus.idleLoad = table2D_getValue(&iacCrankDutyTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
         idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
         idle_pid_target_value = idle_pwm_target_value << 2; //Resolution increased
-        idlePID.Initialize(); //Update output to smooth transition
+        idlePID.Initialize(); //Update output to smooth transition \bookmark/
       }
       else if ( !BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN))
       {
@@ -821,9 +875,9 @@ void idleControl()
       }
       break;
 
-    case IAC_ALGORITHM_HB_DEFAULT:      //Case 1 is H-Bridge Default
+    case IAC_ALGORITHM_HB_DEFAULT:      //Case 1 is H-Bridge Default 
       // Read current idle duty and check if cranking or not
-      if ( BIT_CHECK(LOOP_TIMER, BIT_TIMER_1HZ) )
+      if ( (mainLoopCount & 255) == 1 )
       {
         if( BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK) ) //Check for cranking pulsewidth
         {
@@ -846,7 +900,7 @@ void idleControl()
         break;
       }
 
-      if( (mainLoopCount & 1023) == 1 )  //This only needs to be run very infrequently, once every 1024 loops.
+      if( (mainLoopCount & 1023) == 1 )  //This only needs to be run very infrequently, once every 1024 loops.  \bookmark/
       { 
         idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
         idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
@@ -999,11 +1053,11 @@ void idleControl()
       idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
 
       //If idle state is not active, if tps is over 30% or idle load is set to zero then disable the idle control
-      /*if(currentStatus.CTPSActive == false || currentStatus.TPS >= configPage15.hbRpmbelow) 
+      if(currentStatus.CTPSActive == false || currentStatus.TPS >= configPage15.hbRpmbelow) 
       {
         disableIdle();
         break;
-      }*/
+      }
 
       if( (mainLoopCount & 1023) == 1)  //This only needs to be run very infrequently, once every 1024 loops.
       { 
@@ -1014,7 +1068,7 @@ void idleControl()
       PID_computed = idleHB_PID.Compute(); //Compute() returns false if the required interval has not yet passed.
       if(PID_computed == true)
       {
-        int16_t idle_pid_hb_target = ((unsigned long)(idle_pid_hb_target_value) * idle_pwm_max_count) / 10000; //Convert idle load (Which is a % multipled by 100) to a pwm count
+        int16_t idle_pid_hb_target = ((unsigned long)(idle_pid_hb_target_value) * idle_pwm_max_count) / 10000UL; //Convert idle load (Which is a % multipled by 100) to a pwm count
         currentStatus.idleLoad = ((unsigned long)(idle_pid_hb_target * 100UL) / idle_pwm_max_count) >> 1;
         idle_pid_hb_target = (idle_pid_hb_target - (idle_pwm_max_count >> 1)) * 2;
         if (idle_pid_hb_target > 0)
@@ -1037,6 +1091,133 @@ void idleControl()
         }
         BIT_SET(currentStatus.spark, BIT_SPARK_IDLE); //Turn the idle control flag on
       }
+      break;
+
+    case IAC_ALGORITHM_HB_ITPS_OL:    //Case 11 is ITPS Based idle control test
+      //Check for cranking pulsewidth
+      if ( BIT_CHECK(LOOP_TIMER, BIT_TIMER_10HZ) )
+      {
+        if( BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK) )
+        {
+          //Currently cranking. Use the cranking table
+          currentStatus.HBIdleTarget = table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
+          idleTaper = 0;
+        }
+        else if ( !BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN))
+        {
+          if( configPage6.iacPWMrun == true )
+          {
+            //Engine is not running or cranking, but the run before crank flag is set. Use cranking table
+            currentStatus.HBIdleTarget = table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
+            idleTaper = 0;
+          }
+        }
+        else
+        {
+          if ( idleTaper < configPage2.idleTaperTime )
+          {
+            //Tapering between cranking IAC value and running
+            currentStatus.HBIdleTarget = map(idleTaper, 0, configPage2.idleTaperTime,\
+            table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET),\
+            table2D_getValue(&hbITPSTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET));
+            if( BIT_CHECK(LOOP_TIMER, BIT_TIMER_10HZ) ) { idleTaper++; }
+          }
+          else
+          {
+            //Standart running
+            currentStatus.HBIdleTarget = table2D_getValue(&hbITPSTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET);
+          }
+        }
+      
+        if( currentStatus.HBIdleTarget > 100 )  { currentStatus.HBIdleTarget = 100; } //Safety Check
+
+        //idleLoad_value = (currentStatus.idleLoad /2); //divide by 2
+      }
+
+      //if( BIT_CHECK(LOOP_TIMER, BIT_TIMER_30HZ) )
+      //{
+      if( currentStatus.CTPSActive == true && BIT_CHECK(LOOP_TIMER, BIT_TIMER_10HZ) /*|| currentStatus.RPMdiv100 < configPage15.hbRpmbelow */ )
+      {
+        if( currentStatus.idleLoad == 0 ) //Trying to set the idleload to previus value
+        { currentStatus.idleLoad = lastIdleload; }
+        
+        if( currentStatus.ITPS < currentStatus.HBIdleTarget)
+        {
+          currentStatus.idleLoad++;
+        }
+        else if ( currentStatus.ITPS > currentStatus.HBIdleTarget && BIT_CHECK(LOOP_TIMER, BIT_TIMER_4HZ) )
+        {
+          currentStatus.idleLoad--;
+        }
+      
+        lastIdleload = currentStatus.idleLoad;
+      }
+      else if ( currentStatus.CTPSActive == false )
+      {
+        currentStatus.idleLoad = 0; 
+      }
+      //}
+
+        if(currentStatus.idleUpActive == true)  { currentStatus.idleLoad += configPage2.idleUpAdder; } //Add Idle Up amount if active
+        if( currentStatus.idleLoad > 100 )      { currentStatus.idleLoad = 100; } //Safety Check
+        idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
+      
+    break;
+
+  case IAC_ALGORITHM_HB_ITPS_OL2:      //Case 12 is ITPS based idle using PID
+      //Check for cranking pulsewidth
+      if( BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK) )
+      {
+        //Currently cranking. Use the cranking table
+        currentStatus.HBIdleTarget = table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
+        //idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
+        idleTaper = 0;
+      }
+      else if ( !BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN))
+      {
+        if( configPage6.iacPWMrun == true )
+        {
+          //Engine is not running or cranking, but the run before crank flag is set. Use the cranking table
+          currentStatus.HBIdleTarget = table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
+          idleTaper = 0;
+        }
+        itpsPID.Initialize(); //Update output to smooth transition
+      }
+      else
+      {
+        if ( idleTaper < configPage2.idleTaperTime )
+        {
+          //Tapering between cranking IAC value and running
+          currentStatus.HBIdleTarget = map(idleTaper, 0, configPage2.idleTaperTime,\
+          table2D_getValue(&hbCrankPositionTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET),\
+          table2D_getValue(&hbITPSTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET));
+          if( BIT_CHECK(LOOP_TIMER, BIT_TIMER_10HZ) ) { idleTaper++; }
+        }
+        else
+        {
+          //Standard running
+          currentStatus.HBIdleTarget = table2D_getValue(&hbITPSTable, currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET); //All temps are offset by 40 degrees
+        }
+      }
+      
+      //itpsPID.Initialize(); //Update output to smooth transition
+      idle_target_itps = (uint16_t)currentStatus.HBIdleTarget * 10; //Multiply the byte target value back out by 10
+      if( BIT_CHECK(LOOP_TIMER, BIT_TIMER_1HZ) ) { itpsPID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD); } //Re-read the PID settings once per second
+
+      //if(currentStatus.idleUpActive == true) { currentStatus.idleLoad += configPage2.idleUpAdder; } //Add Idle Up amount if active
+      if( currentStatus.idleLoad > 100 ) { currentStatus.idleLoad = 100; } //Safety Check
+      idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
+
+      PID_computed = itpsPID.Compute(true);
+      if(PID_computed == true)
+      {
+        idle_pwm_target_value = idle_pid_itps_target_value>>2; //increased resolution
+        currentStatus.idleLoad = ((unsigned long)(idle_pwm_target_value * 100UL) / idle_pwm_max_count);
+        if(currentStatus.idleUpActive == true) { currentStatus.idleLoad += configPage2.idleUpAdder; } //Add Idle Up amount if active
+      }
+      
+      //if( configPage15.hbControl == 1) { doHbControl(); }
+
       break;
     
     default:

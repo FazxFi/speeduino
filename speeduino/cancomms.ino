@@ -345,6 +345,7 @@ void sendcanValues(uint16_t offset, uint16_t packetLength, byte cmd, byte portTy
   fullStatus[121] = currentStatus.fanDuty;
   fullStatus[122] = currentStatus.ITPS;
   fullStatus[123] = currentStatus.CTPSActive;
+  fullStatus[124] = currentStatus.HBIdleTarget;
 
   for(byte x=0; x<packetLength; x++)
   {

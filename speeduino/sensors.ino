@@ -441,38 +441,41 @@ void readTPS(bool useFilter)
   
   BIT_WRITE(currentStatus.status4, BIT_STATUS4_CTPS_STATUS, currentStatus.CTPSActive);
 
-  //REAd ITPS Value
-  if(configPage15.iacAlgorithm >= 8)
+}
+
+void readITPS()
+{
+  //currentStatus.ITPSlast = currentStatus.ITPS;
+  #if defined(ANALOG_ISR)
+    byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A0], 255); //Get the current raw TPS ADC value and map it into a byte
+  #else
+    analogRead(pinITPS);
+    byte tempITPS = fastMap1023toX(analogRead(pinITPS), 255); //Get the current raw TPS ADC value and map it into a byte
+  #endif
+  //The use of the filter can be overridden if required. This is used on startup to disable priming pulse if flood clear is wanted
+  currentStatus.itpsADC = ADC_FILTER(tempITPS, configPage15.ADCFILTER_ITPS, currentStatus.itpsADC);
+  byte tempIADC = currentStatus.itpsADC; //The tempADC value is used in order to allow TunerStudio to recover and redo the TPS calibration if this somehow gets corrupted
+
+  if(configPage15.itpsMax > configPage15.itpsMin)
   {
-    #if defined(ANALOG_ISR)
-      byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A0], 255); //Get the current raw ITPS ADC value and map it into a byte
-    #else
-      analogRead(pinITPS);
-      byte tempITPS = fastMap1023toX(analogRead(pinITPS), 255); //Get the current raw ITPS ADC value and map it into a byte
-    #endif
+    //Check that the ADC values fall within the min and max ranges (Should always be the case, but noise can cause these to fluctuate outside the defined range).
+    if (currentStatus.itpsADC < configPage15.itpsMin) { tempIADC = configPage15.itpsMin; }
+    else if(currentStatus.itpsADC > configPage15.itpsMax) { tempIADC = configPage15.itpsMax; }
+    currentStatus.ITPS = map(tempIADC, configPage15.itpsMin, configPage15.itpsMax, 0, 100); //Take the raw ITPS ADC value and convert it into a TPS% based on the calibrated values
+  }
+  else
+  {
+    //This case occurs when the ITPS +5v and gnd are wired backwards, but the user wishes to retain this configuration.
+    //In such a case, itpsMin will be greater then itpsMax and hence checks and mapping needs to be reversed
 
-    currentStatus.itpsADC = ADC_FILTER(tempITPS, configPage4.ADCFILTER_TPS, currentStatus.itpsADC); // Idle range tps shares the adc filter with main tps
-    tempADC = currentStatus.itpsADC;
+    tempIADC = 255 - currentStatus.itpsADC; //Reverse the ADC values
+    uint16_t tempITPSMax = 255 - configPage15.itpsMax;
+    uint16_t tempITPSMin = 255 - configPage15.itpsMin;
 
-    if(configPage15.itpsMax > configPage15.itpsMin)
-    {
-      //Check that the ADC values fall within the min and max ranges (Should always be the case, but noise can cause these to fluctuate outside the defined range).
-      if (currentStatus.itpsADC < configPage15.itpsMin) { tempADC = configPage15.itpsMin; }
-      else if(currentStatus.itpsADC > configPage15.itpsMax) { tempADC = configPage15.itpsMax; }
-      currentStatus.ITPS = map(tempADC, configPage15.itpsMin, configPage15.itpsMax, 0, 100); //Take the raw ITPS ADC value and convert it into a ITPS% based on the calibrated values
-    }
-    else
-    {
-      //This case occurs when the ITPS +5v and gnd are wired backwards, but the user wishes to retain this configuration.
-      //In such a case, itpsMin will be greater then itpsMax and hence checks and mapping needs to be reversed
-
-      tempADC = 255 - currentStatus.itpsADC; //Reverse the ADC values
-
-      //All checks below are reversed from the standard case above
-      if (tempADC > configPage15.itpsMin) { tempADC = configPage15.itpsMin; }
-      else if(tempADC < configPage15.itpsMax) { tempADC = configPage15.itpsMax; }
-      currentStatus.ITPS = map(tempADC, configPage15.itpsMax, configPage15.itpsMin, 0, 100);
-    }
+    //All checks below are reversed from the standard case above
+    if (tempIADC > tempITPSMax) { tempIADC = tempITPSMax; }
+    else if(tempIADC < tempITPSMin) { tempIADC = tempITPSMin; }
+    currentStatus.ITPS = map(tempIADC, tempITPSMin, tempITPSMax, 0, 100);
   }
 }
 

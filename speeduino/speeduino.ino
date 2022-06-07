@@ -254,7 +254,7 @@ void loop()
            //sendCancommand(3,((configPage9.realtime_base_address & 0x3FF)+ 0x100),currentStatus.TPS,0,0x200);
           }
       #endif     
-
+    
       //Check for launching/flat shift (clutch) can be done around here too
       previousClutchTrigger = clutchTrigger;
       //Only check for pinLaunch if any function using it is enabled. Else pins might break starting a board
@@ -322,6 +322,8 @@ void loop()
       #endif
       readO2();
       readO2_2();
+      readITPS(); // Maybe can be lower frequentcy
+
 
       #ifdef SD_LOGGING
         if(configPage13.onboard_log_file_rate == LOGGER_RATE_30HZ) { writeSDLogEntry(); }
@@ -440,7 +442,8 @@ void loop()
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT)
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED)
-    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) )
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) 
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
     {
       idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }

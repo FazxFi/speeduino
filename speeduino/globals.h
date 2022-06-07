@@ -642,7 +642,7 @@ struct statuses {
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
   byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
   byte TPSlast; /**< The previous TPS reading */
-  long ITPS; /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  long ITPS;   /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
   byte itpsADC; /**< 0-255 byte representation of the ITPS. Downsampled from the original 10-bit reading, but before any calibration is applied */
   byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
   volatile int rpmDOT; /**< RPM delta over time (RPM increase / s ?) */
@@ -676,6 +676,7 @@ struct statuses {
   byte fuelTempCorrection; /**< Amount of correction being applied to compensate for fuel temperature */
   int8_t flexIgnCorrection;/**< Amount of additional advance being applied based on flex. Note the type as this allows for negative values */
   byte afrTarget;    /**< Current AFR Target looked up from AFR target table (x10 ? See @ref afrTable)*/
+  long HBIdleTarget; /**< The target idle Position (when H-Bridge idle control is active) */
   byte CLIdleTarget; /**< The target idle RPM (when closed loop idle control is active) */
   bool idleUpActive; /**< Whether the externally controlled idle up is currently active */
   bool CTPSActive;   /**< Whether the externally controlled closed throttle position sensor is currently active */
@@ -708,6 +709,7 @@ struct statuses {
   bool testActive;    // Not in use ? Replaced by testOutputs ?
   uint16_t boostDuty; ///< Boost Duty percentage value * 100 to give 2 points of precision
   uint16_t idleLoad;      ///< Either the current steps or current duty cycle for the idle control
+  //byte ITPStarget;
   uint16_t canin[16]; ///< 16bit raw value of selected canin data for channels 0-15
   uint8_t current_caninchannel = 0; /**< Current CAN channel, defaults to 0 */
   uint16_t crankRPM = 400; /**< The actual cranking RPM limit. This is derived from the value in the config page, but saves us multiplying it every time it's used (Config page value is stored divided by 10) */
@@ -1443,7 +1445,7 @@ Page 15 - second page for VVT and boost control.
 */
 struct config15 {
   byte boostControlEnable : 1; 
-  byte unused15_1 : 7; //7bits unused
+  byte unused15_1 :         7; //7bits unused
   byte boostDCWhenDisabled;
   byte boostControlEnableThreshold; //if fixed value enable set threshold here.
 
@@ -1456,10 +1458,10 @@ struct config15 {
   byte itpsMax;
   byte itpsPin :            4; // Selactable Analog Pin for ITPS
   byte unused_idle_bits2 :  4;
-  byte Idle_pin_1 :         6; 
+  byte IdlePin_1 :          6; 
   byte unused_idle_bits3 :  2;
-  byte Idle_pin_2 :         6;
-  byte unused_idle_bits4 :  2;
+//  byte IdlePin_2 :          6;
+//  byte unused_idle_bits4 :  2;
   byte hbDirPin1 :          6;
   byte unused_idle_bits5 :  2;
   byte hbDirPin2 :          6;
@@ -1467,9 +1469,13 @@ struct config15 {
   uint16_t idleSens;
   byte idleIntv;
   byte hbRpmbelow;
-  byte tpsThrehHold;
+//  byte tpsThrehHold;
 
-  byte unused15_96_256[160];
+  byte hbCrankPosition    [4]; // Idle valve Position when cranking
+  byte hbOLITPSVal       [10]; //Open loop ITPS target values
+  byte ADCFILTER_ITPS;
+
+  byte unused15_99_256  [147];
 
 #if defined(CORE_AVR)
   };
