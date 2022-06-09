@@ -344,6 +344,7 @@ void initialiseAll()
     //initialiseDisplay();
     initialiseIdle();
     initialiseFan();
+    initialiseAirCon();
     initialiseAuxPWM();
     initialiseCorrections();
     BIT_CLEAR(currentStatus.engineProtectStatus, PROTECT_IO_ERROR); //Clear the I/O error bit. The bit will be set in initialiseADC() if there is problem in there.
@@ -2617,6 +2618,10 @@ void setPinMapping(byte boardID)
   if ( (configPage10.wmiIndicatorPin != 0) && (configPage10.wmiIndicatorPin < BOARD_MAX_IO_PINS) ) { pinWMIIndicator = pinTranslate(configPage10.wmiIndicatorPin); }
   if ( (configPage10.wmiEnabledPin != 0) && (configPage10.wmiEnabledPin < BOARD_MAX_IO_PINS) ) { pinWMIEnabled = pinTranslate(configPage10.wmiEnabledPin); }
   if ( (configPage10.vvt2Pin != 0) && (configPage10.vvt2Pin < BOARD_MAX_IO_PINS) ) { pinVVT_2 = pinTranslate(configPage10.vvt2Pin); }
+  
+  if ( (configPage15.airConReqPin !=0) && (configPage15.airConReqPin < BOARD_MAX_IO_PINS) ) { pinAirConRequest = pinTranslate(configPage15.airConReqPin); }
+  if ( (configPage15.airConCompPin !=0) && (configPage15.airConCompPin < BOARD_MAX_IO_PINS) ) { pinAirConComp = pinTranslate(configPage15.airConCompPin); }
+  if ( (configPage15.airConFanPin !=0) && (configPage15.airConFanPin < BOARD_MAX_IO_PINS) ) { pinAirConFan = pinTranslate(configPage15.airConFanPin); }
 
   //Currently there's no default pin for Idle Up
   pinIdleUp = pinTranslate(configPage2.idleUpPin);
@@ -2833,6 +2838,20 @@ void setPinMapping(byte boardID)
       else { pinMode(pinWMIEmpty, INPUT); } //inverted setting
     }
   }  
+  if(configPage15.airConEnable > 0)
+  {
+    if(configPage15.airConReqPol == 0) { pinMode(pinAirConRequest, INPUT_PULLUP); }
+    else { pinMode(pinAirConRequest, INPUT); }
+
+    pinMode(pinAirConComp, OUTPUT);
+    if(configPage15.airConCompPol > 0) { digitalWrite(pinAirConComp, HIGH); }
+
+    if(configPage15.airConFanEnabled > 0)
+    {
+      pinMode(pinAirConFan, OUTPUT);
+      if(configPage15.airConFanPol > 0) { digitalWrite(pinAirConFan, HIGH); }
+    }
+  }
 
   //These must come after the above pinMode statements
   triggerPri_pin_port = portInputRegister(digitalPinToPort(pinTrigger));
