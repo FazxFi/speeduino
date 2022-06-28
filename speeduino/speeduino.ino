@@ -253,7 +253,9 @@ void loop()
            // this is just to test the interface is sending
            //sendCancommand(3,((configPage9.realtime_base_address & 0x3FF)+ 0x100),currentStatus.TPS,0,0x200);
           }
-      #endif     
+      #endif 
+
+      if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency    
     
       //Check for launching/flat shift (clutch) can be done around here too
       previousClutchTrigger = clutchTrigger;
@@ -322,7 +324,6 @@ void loop()
       #endif
       readO2();
       readO2_2();
-      readITPS(); // Maybe can be lower frequentcy
 
 
       #ifdef SD_LOGGING
@@ -441,9 +442,8 @@ void loop()
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
     || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT)
-    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED)
-    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_CL) 
-    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
+    || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) )
+    //|| (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
     {
       idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }

@@ -2661,11 +2661,11 @@ void setPinMapping(byte boardID)
   pinMode(pinStepperDir, OUTPUT);
   pinMode(pinStepperStep, OUTPUT);
   pinMode(pinStepperEnable, OUTPUT);
+  pinMode(pinHBdir1, OUTPUT);
+  pinMode(pinHBdir2, OUTPUT);
   pinMode(pinBoost, OUTPUT);
   pinMode(pinVVT_1, OUTPUT);
   pinMode(pinVVT_2, OUTPUT);
-  pinMode(pinHBdir1, OUTPUT);
-  pinMode(pinHBdir2, OUTPUT);
 
 
 

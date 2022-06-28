@@ -16,9 +16,9 @@
 
 #define IAC_ALGORITHM_HB_DEFAULT  8
 #define IAC_ALGORITHM_HB_UPDATED  9
-#define IAC_ALGORITHM_HB_CL       10
-#define IAC_ALGORITHM_HB_ITPS_OL  11 //Test for ITPS based idle
-#define IAC_ALGORITHM_HB_ITPS_OL2 12 //For Using PID
+#define IAC_ALGORITHM_HB_ITPS_OL  10 //Test for ITPS based idle
+#define IAC_ALGORITHM_HB_ITPS_OL2 11 //For Using PID
+#define IAC_ALGORITHM_HB_ITPS_FFT 12 //For FeedForwardTerm test
 
 #define IDLE_PIN_LOW()  *idle_pin_port &= ~(idle_pin_mask)
 #define IDLE_PIN_HIGH() *idle_pin_port |= (idle_pin_mask)
@@ -84,10 +84,11 @@ long idle_cl_target_rpm;
 byte idleCounter; //Used for tracking the number of calls to the idle control function
 uint8_t idleTaper;
 
-byte lastIdleload; //Store last idleLoad value
+bool lastIdleStatus;
 long idleLoad_value;
-long idle_target_itps;
-long idle_pid_itps_target_value;
+//long idle_target_itps;
+uint16_t idle_pid_itps_target_value;
+uint16_t hb_idle_target;
 
 byte idleUpOutputHIGH = HIGH; // Used to invert the idle Up Output 
 byte idleUpOutputLOW = LOW;   // Used to invert the idle Up Output 

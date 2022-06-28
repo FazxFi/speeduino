@@ -365,13 +365,13 @@ void TS_CommandButtonsHandler(uint16_t buttonCommand)
       }
       break;
 
-    case TS_CMD_IDLE_SET:
+    /*case TS_CMD_IDLE_SET:
       if( !BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN) )
       {
         //
       }
       break;
-
+*/
     //STM32 Commands
     case TS_CMD_STM32_REBOOT: //
       doSystemReset();
