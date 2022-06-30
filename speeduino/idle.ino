@@ -17,20 +17,20 @@ Idle Control
 Currently limited to on/off control and open loop PWM and stepper drive \bookmark/
 */
 integerPID        idlePID(&currentStatus.longRPM, &idle_pid_target_value, &idle_cl_target_rpm, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
+//integerPID_ideal  idleHB_PID(&currentStatus.ITPS, &idle_pid_hb_target_value, &currentStatus.idleLoad, &configPage15.idleSens, &configPage15.idleIntv, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
 //integerPID        itpsPID(&currentStatus.ITPS, &idle_pid_itps_target_value, &currentStatus.HBIdleTarget, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
 integerPID_ideal  itpsPID(&currentStatus.ITPS, &idle_pid_itps_target_value, &hb_idle_target, &configPage15.idleSens, &configPage15.idleIntv, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
-integerPID_ideal  idleHB_PID(&currentStatus.ITPS, &idle_pid_hb_target_value, &currentStatus.idleLoad, &configPage15.idleSens, &configPage15.idleIntv, configPage6.idleKP, configPage6.idleKI, configPage6.idleKD, DIRECT); //This is the PID object if that algorithm is used. Needs to be global as it maintains state outside of each function call
 
 //Any common functions associated with starting the Idle
 //Typically this is enabling the PWM interrupt
 static inline void enableIdle()
 {
-  if( (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) 
-  || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) )
+  if( (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) 
+  || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) )
   {
     IDLE_TIMER_ENABLE();
   }
-  else if ( (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
+  else if ( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
   {
 
   }
@@ -53,7 +53,7 @@ void initialiseIdle()
   hbDir2_pin_mask = digitalPinToBitMask(pinHBdir2);
 
   //Initialising comprises of setting the 2D tables with the relevant values from the config pages
-  switch(configPage15.iacAlgorithm)
+  switch(configPage6.iacAlgorithm)
   {
     case IAC_ALGORITHM_NONE:       
       //Case 0 is no idle control ('None')
@@ -289,8 +289,8 @@ void initialiseIdle()
         #elif defined(CORE_TEENSY41)
           idle_pwm_max_count = 1000000L / (2 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 2uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
         #endif
-        idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
-        idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
+        //idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
+        //idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
       }
       break;
 
@@ -316,9 +316,9 @@ void initialiseIdle()
       #elif defined(CORE_TEENSY41)
         idle_pwm_max_count = 1000000L / (2 * configPage6.idleFreq * 2); //Converts the frequency in Hz to the number of ticks (at 2uS) it takes to complete 1 cycle. Note that the frequency is divided by 2 coming from TS to allow for up to 512hz
       #endif
-      idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
-      idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
-      idleHB_PID.Initialize();
+      //idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
+      //idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
+      //idleHB_PID.Initialize();
       
       enableIdle();
       break;
@@ -384,7 +384,7 @@ void initialiseIdle()
 
   initialiseIdleUpOutput();
 
-  idleInitComplete = configPage15.iacAlgorithm; //Sets which idle method was initialised
+  idleInitComplete = configPage6.iacAlgorithm; //Sets which idle method was initialised
   currentStatus.idleLoad = 0;
 }
 
@@ -535,7 +535,7 @@ static inline void doHbControl()
 
 void idleControl()
 {
-  if( idleInitComplete != configPage15.iacAlgorithm) { initialiseIdle(); }
+  if( idleInitComplete != configPage6.iacAlgorithm) { initialiseIdle(); }
   if( (currentStatus.RPM > 0) || (configPage6.iacPWMrun == true) ) { enableIdle(); }
 
   //Check whether the idleUp is active
@@ -561,7 +561,7 @@ void idleControl()
   else { currentStatus.idleUpActive = false; }
 
   bool PID_computed = false;
-  switch(configPage15.iacAlgorithm)
+  switch(configPage6.iacAlgorithm)
   {
     case IAC_ALGORITHM_NONE:       //Case 0 is no idle control ('None')
       break;
@@ -795,13 +795,13 @@ void idleControl()
               uint16_t minValue = table2D_getValue(&iacCrankStepsTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3;
               if( idle_pid_target_value < minValue<<2 ) { idle_pid_target_value = minValue<<2; }
               uint16_t maxValue = idle_pid_target_value>>2;
-              if( configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL ) { maxValue = table2D_getValue(&iacStepTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3; }
+              if( configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL ) { maxValue = table2D_getValue(&iacStepTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3; }
 
               //Tapering between cranking IAC value and running
               FeedForwardTerm = map(idleTaper, 0, configPage2.idleTaperTime, minValue, maxValue)<<2;
               idle_pid_target_value = FeedForwardTerm;
             }
-            else if (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL)
+            else if (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL)
             {
               //Standard running
               FeedForwardTerm = (table2D_getValue(&iacStepTable, (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET)) * 3)<<2; //All temps are offset by 40 degrees. Step counts are divided by 3 in TS. Multiply back out here
@@ -818,7 +818,7 @@ void idleControl()
 
           //If DFCO conditions are met keep output from changing
           if( (currentStatus.TPS > configPage2.iacTPSlimit) || lastDFCOValue
-          || ((configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) && (idleTaper < configPage2.idleTaperTime)) )
+          || ((configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) && (idleTaper < configPage2.idleTaperTime)) )
           {
             idle_pid_target_value = FeedForwardTerm;
           }
@@ -875,11 +875,11 @@ void idleControl()
 
       if( (mainLoopCount & 1023) == 1 )  //This only needs to be run very infrequently, once every 1024 loops.  \bookmark/
       { 
-        idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
-        idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
+        //idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
+        //idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
       }
 
-      PID_computed = idleHB_PID.Compute(); //Compute() returns false if the required interval has not yet passed.
+      //PID_computed = idleHB_PID.Compute(); //Compute() returns false if the required interval has not yet passed.
       if(PID_computed == true)
       {
         int16_t idle_pid_hb_target = ((unsigned long)(idle_pid_hb_target_value) * idle_pwm_max_count) / 10000L; //Convert idle load (Which is a % multipled by 100) to a pwm count
@@ -957,11 +957,11 @@ void idleControl()
 
       if( (mainLoopCount & 1023) == 1 )  //This only needs to be run very infrequently, once every 1024 loops.(4 Hertz)
       { 
-        idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
-        idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
+        //idleHB_PID.SetOutputLimits(configPage2.iacCLminDuty, configPage2.iacCLmaxDuty);
+        //idleHB_PID.SetTunings(configPage6.idleKP, configPage6.idleKI, configPage6.idleKD);
       }
 
-      PID_computed = idleHB_PID.Compute(); //Compute() returns false if the required interval has not yet passed.
+      //PID_computed = idleHB_PID.Compute(); //Compute() returns false if the required interval has not yet passed.
       if(PID_computed == true)
       {
         int16_t idle_pid_hb_target = ((unsigned long)(idle_pid_hb_target_value) * idle_pwm_max_count) / 10000L; //Convert idle load (Which is a % multipled by 100) to a pwm count
@@ -1116,7 +1116,7 @@ void idleControl()
       {
         if(lastIdleStatus == false && configPage15.initialDuty > 0) //Add initial duty to make the valve easier to open
         {
-          currentStatus.idleLoad == configPage15.initialDuty; 
+          currentStatus.idleLoad = configPage15.initialDuty; 
           idle_pwm_target_value = percentage(currentStatus.idleLoad, idle_pwm_max_count);
           lastIdleStatus = true;
         }
@@ -1156,14 +1156,14 @@ void idleControl()
   lastDFCOValue = BIT_CHECK(currentStatus.status1, BIT_STATUS1_DFCO);
 
   //Check for 100% and 0% DC on PWM idle
-  if( (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) ||
-      (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT) )
+  if( (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OLCL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) ||
+      (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT) )
   {
     if(currentStatus.idleLoad >= 100)
     {
       BIT_SET(currentStatus.spark, BIT_SPARK_IDLE); //Turn the idle control flag on
       IDLE_TIMER_DISABLE();
-      if (configPage6.iacPWMdir == 0)
+      if (configPage15.iacPWMdir == 0)
       {
         //Normal direction
         IDLE_PIN_HIGH();  // Switch pin high
@@ -1192,11 +1192,11 @@ void idleControl()
 //This function simply turns off the idle PWM and sets the pin low
 void disableIdle()
 {
-  if( (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) ||
-      (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) || (configPage15.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT) )
+  if( (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_PWM_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) ||
+      (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2) || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT) )
   {
     IDLE_TIMER_DISABLE();
-    if (configPage6.iacPWMdir == 0)
+    if (configPage15.iacPWMdir == 0)
     {
       //Normal direction
       IDLE_PIN_LOW();  // Switch pin to low
@@ -1209,7 +1209,7 @@ void disableIdle()
       if(configPage6.iacChannels == 1) { IDLE2_PIN_LOW(); } //If 2 idle channels are in use, flip idle2 to be the opposite of idle1
     }
   }
-  else if( (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage15.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
+  else if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL) || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
   {
     //Only disable the stepper motor if homing is completed
     if( (checkForStepping() == false) && (isStepperHomed() == true) )
@@ -1241,7 +1241,7 @@ void idleInterrupt() //Most ARM chips can simply call a function
 {
   if (idle_pwm_state)
   {
-    if (configPage6.iacPWMdir == 0)
+    if (configPage15.iacPWMdir == 0)
     {
       //Normal direction
       IDLE_PIN_LOW();  // Switch pin to low (1 pin mode)
@@ -1258,7 +1258,7 @@ void idleInterrupt() //Most ARM chips can simply call a function
   }
   else
   {
-    if (configPage6.iacPWMdir == 0)
+    if (configPage15.iacPWMdir == 0)
     {
       //Normal direction
       IDLE_PIN_HIGH();  // Switch pin high
