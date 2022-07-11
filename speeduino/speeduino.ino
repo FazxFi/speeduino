@@ -254,7 +254,7 @@ void loop()
           }
       #endif 
 
-      if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency    
+      //if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency    
     
       //Check for launching/flat shift (clutch) can be done around here too
       previousClutchTrigger = clutchTrigger;
@@ -323,6 +323,7 @@ void loop()
       #endif
       readO2();
       readO2_2();
+      if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency
 
 
       #ifdef SD_LOGGING
@@ -440,9 +441,10 @@ void loop()
     if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) 
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_DEFAULT)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_UPDATED) )
-    //|| (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB) 
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2)
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT)
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
     {
       idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }

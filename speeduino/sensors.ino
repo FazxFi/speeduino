@@ -118,6 +118,7 @@ void initialiseADC()
   //If an invalid value is detected, it's reset to the default the value and burned to EEPROM. 
   //Each sensor has it's own default value
   if(configPage4.ADCFILTER_TPS  > 240) { configPage4.ADCFILTER_TPS   = ADCFILTER_TPS_DEFAULT;   writeConfig(ignSetPage); }
+  if(configPage15.ADCFILTER_ITPS  > 240) { configPage4.ADCFILTER_TPS   = ADCFILTER_ITPS_DEFAULT;   writeConfig(ignSetPage); }
   if(configPage4.ADCFILTER_CLT  > 240) { configPage4.ADCFILTER_CLT   = ADCFILTER_CLT_DEFAULT;   writeConfig(ignSetPage); }
   if(configPage4.ADCFILTER_IAT  > 240) { configPage4.ADCFILTER_IAT   = ADCFILTER_IAT_DEFAULT;   writeConfig(ignSetPage); }
   if(configPage4.ADCFILTER_O2   > 240) { configPage4.ADCFILTER_O2    = ADCFILTER_O2_DEFAULT;    writeConfig(ignSetPage); }
@@ -430,24 +431,13 @@ void readTPS(bool useFilter)
     else if(tempADC < tempTPSMin) { tempADC = tempTPSMin; }
     currentStatus.TPS = map(tempADC, tempTPSMin, tempTPSMax, 0, 200);
   }
-
-  //Check whether the closed throttle position sensor is active
-  if(configPage2.CTPSEnabled == true)
-  {
-    if(configPage2.CTPSPolarity == 0) { currentStatus.CTPSActive = !digitalRead(pinCTPS); } //Normal mode (ground switched)
-    else { currentStatus.CTPSActive = digitalRead(pinCTPS); } //Inverted mode (5v activates closed throttle position sensor)
-  }
-  else { currentStatus.CTPSActive = 0; }
-  
-  BIT_WRITE(currentStatus.status4, BIT_STATUS4_CTPS_STATUS, currentStatus.CTPSActive);
-
 }
 
 void readITPS()
 {
-  //currentStatus.ITPSlast = currentStatus.ITPS;
+  currentStatus.ITPSlast = currentStatus.ITPS;
   #if defined(ANALOG_ISR)
-    byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A0], 255); //Get the current raw TPS ADC value and map it into a byte
+    byte tempITPS = fastMap1023toX(AnChannel[pinITPS-A15], 255); //Get the current raw TPS ADC value and map it into a byte
   #else
     analogRead(pinITPS);
     byte tempITPS = fastMap1023toX(analogRead(pinITPS), 255); //Get the current raw TPS ADC value and map it into a byte
@@ -461,7 +451,7 @@ void readITPS()
     //Check that the ADC values fall within the min and max ranges (Should always be the case, but noise can cause these to fluctuate outside the defined range).
     if (currentStatus.itpsADC < configPage15.itpsMin) { tempIADC = configPage15.itpsMin; }
     else if(currentStatus.itpsADC > configPage15.itpsMax) { tempIADC = configPage15.itpsMax; }
-    currentStatus.ITPS = map(tempIADC, configPage15.itpsMin, configPage15.itpsMax, 0, 100); //Take the raw ITPS ADC value and convert it into a TPS% based on the calibrated values
+    currentStatus.ITPS = map(tempIADC, configPage15.itpsMin, configPage15.itpsMax, 0, 200); //Take the raw ITPS ADC value and convert it into a TPS% based on the calibrated values
   }
   else
   {
@@ -475,8 +465,18 @@ void readITPS()
     //All checks below are reversed from the standard case above
     if (tempIADC > tempITPSMax) { tempIADC = tempITPSMax; }
     else if(tempIADC < tempITPSMin) { tempIADC = tempITPSMin; }
-    currentStatus.ITPS = map(tempIADC, tempITPSMin, tempITPSMax, 0, 100);
+    currentStatus.ITPS = map(tempIADC, tempITPSMin, tempITPSMax, 0, 200);
   }
+
+  //Check whether the closed throttle position sensor is active
+  if(configPage2.CTPSEnabled == true)
+  {
+    if(configPage2.CTPSPolarity == 0) { currentStatus.CTPSActive = !digitalRead(pinCTPS); } //Normal mode (ground switched)
+    else { currentStatus.CTPSActive = digitalRead(pinCTPS); } //Inverted mode (5v activates closed throttle position sensor)
+  }
+  else { currentStatus.CTPSActive = 0; }
+  
+  BIT_WRITE(currentStatus.status4, BIT_STATUS4_CTPS_STATUS, currentStatus.CTPSActive);
 }
 
 void readCLT(bool useFilter)

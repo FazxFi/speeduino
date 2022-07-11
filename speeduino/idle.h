@@ -14,11 +14,10 @@
 #define IAC_ALGORITHM_PWM_OLCL    6 //Openloop plus closedloop IAC control
 #define IAC_ALGORITHM_STEP_OLCL   7 //Openloop plus closedloop IAC control
 
-#define IAC_ALGORITHM_HB_DEFAULT  8
-#define IAC_ALGORITHM_HB_UPDATED  9
-#define IAC_ALGORITHM_HB_ITPS_OL  10 //Test for ITPS based idle
-#define IAC_ALGORITHM_HB_ITPS_OL2 11 //For Using PID
-#define IAC_ALGORITHM_HB_ITPS_FFT 12 //For FeedForwardTerm test
+#define IAC_ALGORITHM_HB          8
+#define IAC_ALGORITHM_HB_ITPS_OL  9 //Test for ITPS based idle
+#define IAC_ALGORITHM_HB_ITPS_OL2 10 //For Using PID
+#define IAC_ALGORITHM_HB_ITPS_FFT 11 //For FeedForwardTerm test
 
 #define IDLE_PIN_LOW()  *idle_pin_port &= ~(idle_pin_mask)
 #define IDLE_PIN_HIGH() *idle_pin_port |= (idle_pin_mask)
@@ -75,20 +74,25 @@ volatile PINMASK_TYPE hbDir2_pin_mask;
 volatile bool idle_pwm_state;
 bool lastDFCOValue;
 unsigned int idle_pwm_max_count; //Used for variable PWM frequency
-volatile unsigned int idle_pwm_cur_value;
+volatile unsigned int idle_pwm_cur_value; //current PWM value
 long idle_pid_target_value;
 uint16_t idle_pid_hb_target_value;
 long FeedForwardTerm;
-unsigned long idle_pwm_target_value;
+unsigned long idle_pwm_target_value; //Target PWM value
 long idle_cl_target_rpm;
 byte idleCounter; //Used for tracking the number of calls to the idle control function
 uint8_t idleTaper;
 
 bool lastIdleStatus;
+bool itpsIn;
+byte holdValue;
+byte lastValue;
+byte hbValue;
+//byte incrDuty;
 long idleLoad_value;
-//long idle_target_itps;
-uint16_t idle_pid_itps_target_value;
-uint16_t hb_idle_target;
+long idle_target_itps;
+long idle_pid_itps_target_value;
+//long hb_idle_target;
 
 byte idleUpOutputHIGH = HIGH; // Used to invert the idle Up Output 
 byte idleUpOutputLOW = LOW;   // Used to invert the idle Up Output 

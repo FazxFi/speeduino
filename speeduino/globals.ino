@@ -281,8 +281,8 @@ inline bool pinIsOutput(byte pin)
 {
   bool used = false;
   bool isIdlePWM = (configPage6.iacAlgorithm > 0) && ((configPage6.iacAlgorithm <= 3) || (configPage6.iacAlgorithm == 6));
-  bool isIdleSteper = (configPage6.iacAlgorithm > 3) && (configPage6.iacAlgorithm < 6);
-  bool isIdleHB = (configPage6.iacAlgorithm >= 8);
+  bool isIdleSteper = (configPage6.iacAlgorithm > 3) && (configPage6.iacAlgorithm <= 7);
+  bool isIdleHB = (configPage15.hbControl > 0 );
   //Injector?
   if ((pin == pinInjector1)
   || ((pin == pinInjector2) && (configPage2.nInjectors > 1))
