@@ -281,9 +281,9 @@ struct table2D o2CalibrationTable;
 inline bool pinIsOutput(byte pin)
 {
   bool used = false;
-  bool isIdlePWM = (configPage6.iacAlgorithm > 0) && ((configPage6.iacAlgorithm <= 3) || (configPage6.iacAlgorithm == 6));
+  bool isIdlePWM = (configPage6.iacAlgorithm > 0) && ((configPage6.iacAlgorithm <= 3) || (configPage6.iacAlgorithm == 6) || (configPage6.iacAlgorithm >= 8) );
   bool isIdleSteper = (configPage6.iacAlgorithm > 3) && (configPage6.iacAlgorithm <= 7);
-  bool isIdleHB = (configPage15.hbControl > 0 );
+  bool isIdleHB = (configPage6.iacAlgorithm >= 8 );
   //Injector?
   if ((pin == pinInjector1)
   || ((pin == pinInjector2) && (configPage2.nInjectors > 1))
@@ -315,7 +315,7 @@ inline bool pinIsOutput(byte pin)
   || ((pin == pinVVT_1) && (configPage10.wmiEnabled > 0))
   || ((pin == pinVVT_2) && (configPage10.vvt2Enabled > 0))
   || ((pin == pinBoost) && (configPage6.boostEnabled == 1))
-  || ((pin == pinIdle1) && (isIdlePWM || isIdleHB))
+  || ((pin == pinIdle1) && isIdlePWM)
   || ((pin == pinIdle2) && isIdlePWM && (configPage6.iacChannels == 1))
   || ((pin == pinStepperEnable) && isIdleSteper)
   || ((pin == pinStepperStep) && isIdleSteper)

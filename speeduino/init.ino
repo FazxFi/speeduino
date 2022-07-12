@@ -2619,7 +2619,6 @@ void setPinMapping(byte boardID)
   if ( (configPage10.vvt2Pin != 0) && (configPage10.vvt2Pin < BOARD_MAX_IO_PINS) ) { pinVVT_2 = pinTranslate(configPage10.vvt2Pin); }
   if ( (configPage13.onboard_log_trigger_Epin != 0 ) && (configPage13.onboard_log_trigger_Epin != 0) && (configPage13.onboard_log_tr5_Epin_pin < BOARD_MAX_IO_PINS) ) { pinSDEnable = pinTranslate(configPage13.onboard_log_tr5_Epin_pin); }
   
-
   if ( (configPage15.IdlePin_1 != 0) && (configPage15.IdlePin_1 < BOARD_MAX_IO_PINS) ) { pinIdle1 = pinTranslate(configPage15.IdlePin_1); }
 
 
