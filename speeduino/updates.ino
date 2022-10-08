@@ -576,7 +576,6 @@ void doUpdates()
       divideTableLoad(&vvt2Table, vvt2Table.type_key, 2);
     }
 
-
     configPage4.vvtDelay = 0;
     configPage4.vvtMinClt = 0;
 

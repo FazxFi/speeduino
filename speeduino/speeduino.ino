@@ -255,8 +255,10 @@ void loop()
            // this is just to test the interface is sending
            //sendCancommand(3,((configPage9.realtime_base_address & 0x3FF)+ 0x100),currentStatus.TPS,0,0x200);
           }
-      #endif     
+      #endif 
 
+      //if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency    
+    
       //Check for launching/flat shift (clutch) can be done around here too
       previousClutchTrigger = clutchTrigger;
       //Only check for pinLaunch if any function using it is enabled. Else pins might break starting a board
@@ -327,6 +329,8 @@ void loop()
       #endif
       readO2();
       readO2_2();
+      if(configPage15.hbControl == 1 ) { readITPS(); } // Maybe can be lower frequency
+
 
       #ifdef SD_LOGGING
         if(configPage13.onboard_log_file_rate == LOGGER_RATE_30HZ) { writeSDLogEntry(); }
@@ -442,9 +446,12 @@ void loop()
 
     if( (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OL)
     || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_CL)
-    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL) )
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_STEP_OLCL)  
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL2)
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_FFT)
+    || (configPage6.iacAlgorithm == IAC_ALGORITHM_HB_ITPS_OL) )
     {
-      idleControl(); //Run idlecontrol every loop for stepper idle.
+      idleControl(); //Run idlecontrol every loop for stepper idle and HB idle.
     }
 
     

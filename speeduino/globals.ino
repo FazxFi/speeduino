@@ -206,9 +206,12 @@ byte pinTachOut;  //Tacho output
 byte pinFuelPump; //Fuel pump on/off
 byte pinIdle1;    //Single wire idle control
 byte pinIdle2;    //2 wire idle control (Not currently used)
+byte pinHBdir1;   //H-bridge Idle direction pin 1
+byte pinHBdir2;   //H-bridge Idle direction pin 2
 byte pinIdleUp;   //Input for triggering Idle Up
 byte pinIdleUpOutput; //Output that follows (normal or inverted) the idle up pin
 byte pinCTPS;     //Input for triggering closed throttle state
+byte pinITPS;     //Input for idle range TPS
 byte pinFuel2Input;  //Input for switching to the 2nd fuel table
 byte pinSpark2Input; //Input for switching to the 2nd ignition table
 byte pinSpareTemp1;  // Future use only
@@ -281,8 +284,9 @@ struct table2D o2CalibrationTable;
 inline bool pinIsOutput(byte pin)
 {
   bool used = false;
-  bool isIdlePWM = (configPage6.iacAlgorithm > 0) && ((configPage6.iacAlgorithm <= 3) || (configPage6.iacAlgorithm == 6));
-  bool isIdleSteper = (configPage6.iacAlgorithm > 3) && (configPage6.iacAlgorithm != 6);
+  bool isIdlePWM = (configPage6.iacAlgorithm > 0) && ((configPage6.iacAlgorithm <= 3) || (configPage6.iacAlgorithm == 6) || (configPage6.iacAlgorithm >= 8) );
+  bool isIdleSteper = (configPage6.iacAlgorithm > 3) && (configPage6.iacAlgorithm <= 7);
+  bool isIdleHB = (configPage6.iacAlgorithm >= 8 );
   //Injector?
   if ((pin == pinInjector1)
   || ((pin == pinInjector2) && (configPage2.nInjectors > 1))
@@ -321,7 +325,10 @@ inline bool pinIsOutput(byte pin)
   || ((pin == pinStepperDir) && isIdleSteper)
   || (pin == pinTachOut)
   || ((pin == pinAirConComp) && (configPage15.airConEnable > 0))
-  || ((pin == pinAirConFan) && (configPage15.airConEnable > 0) && (configPage15.airConFanEnabled > 0)) )
+  || ((pin == pinAirConFan) && (configPage15.airConEnable > 0) && (configPage15.airConFanEnabled > 0)) 
+  || ((pin == pinHBdir1) && isIdleHB)
+  || ((pin == pinHBdir2) && isIdleHB)
+  || (pin == pinTachOut) )
   {
     used = true;
   }

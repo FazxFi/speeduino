@@ -165,6 +165,9 @@ byte getTSLogEntry(uint16_t byteNum)
     case 120: statusValue = highByte(currentStatus.EMAP); break;
     case 121: statusValue = currentStatus.fanDuty; break;
     case 122: statusValue = currentStatus.airConStatus; break;
+    case 123: statusValue = currentStatus.ITPS; break; // ITPS (0% to 100%)
+    case 124: statusValue = currentStatus.itpsADC; break;
+    case 125: statusValue = currentStatus.HBIdleTarget; break;
   }
 
   return statusValue;
@@ -287,6 +290,8 @@ int16_t getReadableLogEntry(uint16_t logIndex)
     case 87: statusValue = currentStatus.EMAP; break;
     case 88: statusValue = currentStatus.fanDuty; break;
     case 89: statusValue = currentStatus.airConStatus; break;
+    case 90: statusValue = currentStatus.ITPS; break;
+    case 91: statusValue = currentStatus.HBIdleTarget; break;
   }
 
   return statusValue;

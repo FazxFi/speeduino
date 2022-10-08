@@ -346,7 +346,32 @@ void TS_CommandButtonsHandler(uint16_t buttonCommand)
         BIT_SET(currentStatus.status3, BIT_STATUS3_VSS_REFRESH); //Set the flag to trigger the UI reset
       }
       break;
+    
+    case TS_CMD_ITPS_MIN:
+      if(currentStatus.itpsADC != configPage15.itpsMin)
+      {
+        configPage15.itpsMin = currentStatus.itpsADC;
+        writeConfig(1); // Need to manually save the new config value as it will not trigger a burn in tunerStudio due to use of ControllerPriority
+        BIT_SET(currentStatus.status3, BIT_STATUS3_VSS_REFRESH); //Set the flag to trigger the UI reset
+      }
+      break;
 
+    case TS_CMD_ITPS_MAX:
+      if(currentStatus.itpsADC != configPage15.itpsMax)
+      {
+        configPage15.itpsMax = currentStatus.itpsADC;
+        writeConfig(1); // Need to manually save the new config value as it will not trigger a burn in tunerStudio due to use of ControllerPriority
+        BIT_SET(currentStatus.status3, BIT_STATUS3_VSS_REFRESH); //Set the flag to trigger the UI reset
+      }
+      break;
+
+    /*case TS_CMD_IDLE_SET:
+      if( !BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN) )
+      {
+        //
+      }
+      break;
+*/
     //STM32 Commands
     case TS_CMD_STM32_REBOOT: //
       doSystemReset();

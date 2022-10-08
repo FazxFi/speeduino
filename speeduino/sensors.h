@@ -6,6 +6,7 @@
 // The following are alpha values for the ADC filters.
 // Their values are from 0 to 240, with 0 being no filtering and 240 being maximum
 #define ADCFILTER_TPS_DEFAULT   50
+#define ADCFILTER_ITPS_DEFAULT  20
 #define ADCFILTER_CLT_DEFAULT  180
 #define ADCFILTER_IAT_DEFAULT  180
 #define ADCFILTER_O2_DEFAULT   128
@@ -76,6 +77,7 @@ static inline void readMAP() __attribute__((always_inline));
 static inline void validateMAP();
 void initialiseADC();
 void readTPS(bool=true); //Allows the option to override the use of the filter
+void readITPS(); // the bool thing is not be sure yet
 void readO2_2();
 void flexPulse();
 uint32_t vssGetPulseGap(byte);

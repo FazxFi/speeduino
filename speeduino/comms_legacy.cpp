@@ -135,6 +135,12 @@ void legacySerialCommand()
           TS_CommandButtonsHandler(cmdCombined);
           cmdPending = false;
         }
+        else if( (cmdCombined >= TS_CMD_ITPS_MIN) && (cmdCombined <= TS_CMD_ITPS_MAX) )
+        {
+          //ITPS Calibration command
+          TS_CommandButtonsHandler(cmdCombined);
+          cmdPending = false;
+        }
         else if( (cmdCombined >= TS_CMD_STM32_REBOOT) && (cmdCombined <= TS_CMD_STM32_BOOTLOADER) )
         {
           //STM32 DFU mode button
@@ -1044,7 +1050,7 @@ void sendPageASCII()
       Serial.println(F("\n2nd Ignition Map"));
       serial_print_3dtable(&ignitionTable2, ignitionTable2.type_key);
       break;
-
+    
     case boostvvtPage2:
       Serial.println(F("\nBoost lookup table"));
       serial_print_3dtable(&boostTableLookupDuty, boostTableLookupDuty.type_key);
@@ -1052,6 +1058,7 @@ void sendPageASCII()
 
     case warmupPage:
     case progOutsPage:
+
     default:
     #ifndef SMALL_FLASH_MODE
         Serial.println(F("\nPage has not been implemented yet"));

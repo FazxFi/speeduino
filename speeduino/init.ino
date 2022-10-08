@@ -2620,6 +2620,13 @@ void setPinMapping(byte boardID)
   if ( (configPage10.vvt2Pin != 0) && (configPage10.vvt2Pin < BOARD_MAX_IO_PINS) ) { pinVVT_2 = pinTranslate(configPage10.vvt2Pin); }
   if ( (configPage13.onboard_log_trigger_Epin != 0 ) && (configPage13.onboard_log_trigger_Epin != 0) && (configPage13.onboard_log_tr5_Epin_pin < BOARD_MAX_IO_PINS) ) { pinSDEnable = pinTranslate(configPage13.onboard_log_tr5_Epin_pin); }
   
+  // Air conditioning control initialisation
+  if (((configPage15.airConCompPin&63) != 0) && ((configPage15.airConCompPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConComp = pinTranslate(configPage15.airConCompPin&63); }
+  if (((configPage15.airConFanPin&63) != 0) && ((configPage15.airConFanPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConFan = pinTranslate(configPage15.airConFanPin&63); }
+  if (((configPage15.airConReqPin&63) != 0) && ((configPage15.airConReqPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConRequest = pinTranslate(configPage15.airConReqPin&63); }
+  
+  if ( (configPage15.IdlePin_1 != 0) && (configPage15.IdlePin_1 < BOARD_MAX_IO_PINS) ) { pinIdle1 = pinTranslate(configPage15.IdlePin_1); }
+
 
   //Currently there's no default pin for Idle Up
   
@@ -2631,11 +2638,17 @@ void setPinMapping(byte boardID)
   //Currently there's no default pin for closed throttle position sensor
   pinCTPS = pinTranslate(configPage2.CTPSPin);
   
-  // Air conditioning control initialisation
-  if (((configPage15.airConCompPin&63) != 0) && ((configPage15.airConCompPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConComp = pinTranslate(configPage15.airConCompPin&63); }
-  if (((configPage15.airConFanPin&63) != 0) && ((configPage15.airConFanPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConFan = pinTranslate(configPage15.airConFanPin&63); }
-  if (((configPage15.airConReqPin&63) != 0) && ((configPage15.airConReqPin&63) < BOARD_MAX_IO_PINS) ) { pinAirConRequest = pinTranslate(configPage15.airConReqPin&63); }
   
+
+  //Currently there's no default pin for idle throttle position sensor
+  pinITPS = pinTranslate(configPage15.itpsPin);
+
+  //Currently there's no default pin for H-Bridge driver direction 1
+  pinHBdir1 = pinTranslate(configPage15.hbDirPin1);
+
+  //Currently there's no default pin for H-Bridge driver direction 2
+  pinHBdir2 = pinTranslate(configPage15.hbDirPin2);
+
   /* Reset control is a special case. If reset control is enabled, it needs its initial state set BEFORE its pinMode.
      If that doesn't happen and reset control is in "Serial Command" mode, the Arduino will end up in a reset loop
      because the control pin will go low as soon as the pinMode is set to OUTPUT. */
@@ -2658,9 +2671,13 @@ void setPinMapping(byte boardID)
   pinMode(pinStepperDir, OUTPUT);
   pinMode(pinStepperStep, OUTPUT);
   pinMode(pinStepperEnable, OUTPUT);
+  pinMode(pinHBdir1, OUTPUT);
+  pinMode(pinHBdir2, OUTPUT);
   pinMode(pinBoost, OUTPUT);
   pinMode(pinVVT_1, OUTPUT);
   pinMode(pinVVT_2, OUTPUT);
+
+
 
   //This is a legacy mode option to revert the MAP reading behaviour to match what was in place prior to the 201905 firmware
   if(configPage2.legacyMAP > 0) { digitalWrite(pinMAP, HIGH); }
@@ -2767,6 +2784,7 @@ void setPinMapping(byte boardID)
       pinMode(pinO2, INPUT_ANALOG);
       pinMode(pinO2_2, INPUT_ANALOG);
       pinMode(pinTPS, INPUT_ANALOG);
+      pinMode(pinITPS, INPUT_ANALOG);
       pinMode(pinIAT, INPUT_ANALOG);
       pinMode(pinCLT, INPUT_ANALOG);
       pinMode(pinBat, INPUT_ANALOG);
@@ -2776,6 +2794,7 @@ void setPinMapping(byte boardID)
       pinMode(pinO2, INPUT);
       pinMode(pinO2_2, INPUT);
       pinMode(pinTPS, INPUT);
+      pinMode(pinITPS, INPUT);
       pinMode(pinIAT, INPUT);
       pinMode(pinCLT, INPUT);
       pinMode(pinBat, INPUT);

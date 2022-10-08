@@ -24,6 +24,22 @@ Timers are typically low resolution (Compared to Schedulers), with maximum frequ
   #include <avr/wdt.h>
 #endif
 
+// Define a set of terminal counts which are prime numbers, to avoid multiple hitting on the same loop,
+// which should lead to less jitter.  The absolute frequencies of these are not very important.
+// The values are millisecond periods
+#define TC_30_HZ      31
+#define TC_15_HZ      67
+#define TC_10_HZ     101
+#define TC_4_HZ      251
+#define TC_1_HZ     1001
+#define MS_PER_SEC  1000
+
+ //Preload timer2 with 131: accommodates ISR call latency (1) and gives a 1ms period.  Timer runs at 125 kHz.
+#define TCNT2_TC          255
+#define TCNT2_TICKS_1MS   125
+#define ISR_LATENCY         1
+#define TCNT2_PRELOAD     (TCNT2_TC - TCNT2_TICKS_1MS + ISR_LATENCY)
+
 void initialiseTimers()
 {
   lastRPM_100ms = 0;
@@ -44,6 +60,11 @@ ISR(TIMER2_OVF_vect, ISR_NOBLOCK) //This MUST be no block. Turning NO_BLOCK off 
 void oneMSInterval() //Most ARM chips can simply call a function
 #endif
 {
+#if defined(CORE_AVR) //AVR chips use the ISR for this
+    //Reset Timer2 to trigger in another ~1ms
+    TCNT2 = TCNT2_PRELOAD; 
+#endif
+
   ms_counter++;
 
   //Increment Loop Counters
@@ -99,6 +120,7 @@ void oneMSInterval() //Most ARM chips can simply call a function
   }
   // Tacho sweep
   
+  // Tacho output calculations.  
 
 
   //30Hz loop

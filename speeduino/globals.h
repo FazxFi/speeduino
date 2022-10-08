@@ -226,8 +226,8 @@
 #define BIT_STATUS4_VVT2_ERROR    2 //VVT2 cam angle within limits or not
 #define BIT_STATUS4_FAN           3 //Fan Status
 #define BIT_STATUS4_BURNPENDING   4
-#define BIT_STATUS4_UNUSED6       5
-#define BIT_STATUS4_UNUSED7       6
+#define BIT_STATUS4_CTPS_STATUS   5 // Indicates weather the Throtlle is close or open 
+#define BIT_STATUS4_IDLETEST      6
 #define BIT_STATUS4_UNUSED8       7
 
 #define BIT_AIRCON_REQUEST        0 //Indicates whether the A/C button is pressed
@@ -631,8 +631,8 @@ extern volatile byte LOOP_TIMER;
 //These functions all do checks on a pin to determine if it is already in use by another (higher importance) function
 #define pinIsInjector(pin)  ( ((pin) == pinInjector1) || ((pin) == pinInjector2) || ((pin) == pinInjector3) || ((pin) == pinInjector4) || ((pin) == pinInjector5) || ((pin) == pinInjector6) || ((pin) == pinInjector7) || ((pin) == pinInjector8) )
 #define pinIsIgnition(pin)  ( ((pin) == pinCoil1) || ((pin) == pinCoil2) || ((pin) == pinCoil3) || ((pin) == pinCoil4) || ((pin) == pinCoil5) || ((pin) == pinCoil6) || ((pin) == pinCoil7) || ((pin) == pinCoil8) )
-//#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinAirConComp) || ((pin) == pinAirConFan)|| ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
-#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinO2) || ((pin) == pinBat) || (((pin) == pinFlex) && (configPage2.flexEnabled != 0)) )
+//#define pinIsOutput(pin)    ( pinIsInjector((pin)) || pinIsIgnition((pin)) || ((pin) == pinFuelPump) || ((pin) == pinFan) || ((pin) == pinVVT_1) || ((pin) == pinVVT_2) || ( ((pin) == pinBoost) && configPage6.boostEnabled) || ((pin) == pinIdle1) || ((pin) == pinIdle2) || ((pin) == pinTachOut) || ((pin) == pinStepperEnable) || ((pin) == pinStepperStep) )
+#define pinIsSensor(pin)    ( ((pin) == pinCLT) || ((pin) == pinIAT) || ((pin) == pinMAP) || ((pin) == pinTPS) || ((pin) == pinITPS) || ((pin) == pinO2) || ((pin) == pinBat) || (((pin) == pinFlex) && (configPage2.flexEnabled != 0)) )
 //#define pinIsUsed(pin)      ( pinIsSensor((pin)) || pinIsOutput((pin)) || pinIsReserved((pin)) )
 
 
@@ -657,6 +657,10 @@ struct statuses {
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
   byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
   byte TPSlast; /**< The previous TPS reading */
+  byte ITPS;   /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  long halfITPS; /**< Convert from 0-200 to 0-100 */
+  byte itpsADC; /**< 0-255 byte representation of the ITPS. Downsampled from the original 10-bit reading, but before any calibration is applied */
+  byte ITPSlast;
   byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
   volatile int rpmDOT; /**< RPM delta over time (RPM increase / s ?) */
   byte VE;     /**< The current VE value being used in the fuel calculation. Can be the same as VE1 or VE2, or a calculated value of both. */
@@ -689,6 +693,7 @@ struct statuses {
   byte fuelTempCorrection; /**< Amount of correction being applied to compensate for fuel temperature */
   int8_t flexIgnCorrection;/**< Amount of additional advance being applied based on flex. Note the type as this allows for negative values */
   byte afrTarget;    /**< Current AFR Target looked up from AFR target table (x10 ? See @ref afrTable)*/
+  long HBIdleTarget; /**< The target idle Position (when H-Bridge idle control is active) */
   byte CLIdleTarget; /**< The target idle RPM (when closed loop idle control is active) */
   bool idleUpActive; /**< Whether the externally controlled idle up is currently active */
   bool CTPSActive;   /**< Whether the externally controlled closed throttle position sensor is currently active */
@@ -1111,10 +1116,10 @@ struct config6 {
   byte iacCrankDuty[4]; //Duty cycle to use on PWM valves when cranking
   byte iacCrankBins[4]; //Temperature Bins for the above 2 curves
 
-  byte iacAlgorithm : 3; //Valid values are: "None", "On/Off", "PWM", "PWM Closed Loop", "Stepper", "Stepper Closed Loop"
+  byte iacAlgorithm : 4; //Valid values are: "None", "On/Off", "PWM", "PWM Closed Loop", "Stepper", "Stepper Closed Loop"
   byte iacStepTime : 3; //How long to pulse the stepper for to ensure the step completes (ms)
   byte iacChannels : 1; //How many outputs to use in PWM mode (0 = 1 channel, 1 = 2 channels)
-  byte iacPWMdir : 1; //Direction of the PWM valve. 0 = Normal = Higher RPM with more duty. 1 = Reverse = Lower RPM with more duty
+  //byte iacPWMdir : 1; //Direction of the PWM valve. 0 = Normal = Higher RPM with more duty. 1 = Reverse = Lower RPM with more duty
 
   byte iacFastTemp; //Fast idle temp when using a simple on/off valve
 
@@ -1447,11 +1452,11 @@ struct config13 {
 
 /**
 Page 15 - second page for VVT and boost control.
-256 bytes long. 
+192 bytes long. 
 */
 struct config15 {
   byte boostControlEnable : 1; 
-  byte unused15_1 : 7; //7bits unused
+  byte unused15_1 :         7; //7bits unused
   byte boostDCWhenDisabled;
   byte boostControlEnableThreshold; //if fixed value enable set threshold here.
   
@@ -1485,6 +1490,35 @@ struct config15 {
   
   //Bytes 98-255
   byte Unused15_98_255[158];
+
+  //Bytes 83-95  H-Bridge
+  byte hbControl :          2; // valid option is "None", "Enable", "", "" for now
+  byte iacPWMdir :          1; //Direction of the PWM valve. 0 = Normal = Higher RPM with more duty. 1 = Reverse = Lower RPM with more duty
+  byte unused_idle_bits1 :  5;
+  byte itpsMin;
+  byte itpsMax;
+  byte itpsPin :            4; // Selactable Analog Pin for ITPS
+  byte unused_idle_bits2 :  4;
+  byte IdlePin_1 :          6; 
+  byte unused_idle_bits3 :  2;
+//  byte IdlePin_2 :          6;
+//  byte unused_idle_bits4 :  2;
+  byte hbDirPin1 :          6;
+  byte unused_idle_bits5 :  2;
+  byte hbDirPin2 :          6;
+  byte unused_idle_bits6 :  2;
+  uint16_t idleSens;
+  byte idleIntv;
+  byte hbRpmbelow;
+//  byte tpsThrehHold;
+
+  byte hbCrankPosition    [4]; // Idle valve Position when cranking
+  byte hbOLITPSVal       [10]; //Open loop ITPS target values
+  byte ADCFILTER_ITPS;
+
+  byte initialDuty;
+
+  byte unused15_110_256  [146];
 
 #if defined(CORE_AVR)
   };
@@ -1527,9 +1561,12 @@ extern byte pinTachOut; //Tacho output
 extern byte pinFuelPump; //Fuel pump on/off
 extern byte pinIdle1; //Single wire idle control
 extern byte pinIdle2; //2 wire idle control (Not currently used)
+extern byte pinHBdir1; //H-bridge Idle direction pin 1
+extern byte pinHBdir2; //H-bridge Idle direction pin 2
 extern byte pinIdleUp; //Input for triggering Idle Up
 extern byte pinIdleUpOutput; //Output that follows (normal or inverted) the idle up pin
 extern byte pinCTPS; //Input for triggering closed throttle state
+extern byte pinITPS; //Input for idle range TPS
 extern byte pinFuel2Input; //Input for switching to the 2nd fuel table
 extern byte pinSpark2Input; //Input for switching to the 2nd ignition table
 extern byte pinSpareTemp1; // Future use only
