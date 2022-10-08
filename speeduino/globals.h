@@ -1488,9 +1488,6 @@ struct config15 {
   byte airConIdleUpRPMAdder;
   byte airConPwmFanMinDuty;
   
-  //Bytes 98-255
-  byte Unused15_98_255[158];
-
   //Bytes 83-95  H-Bridge
   byte hbControl :          2; // valid option is "None", "Enable", "", "" for now
   byte iacPWMdir :          1; //Direction of the PWM valve. 0 = Normal = Higher RPM with more duty. 1 = Reverse = Lower RPM with more duty
@@ -1518,7 +1515,7 @@ struct config15 {
 
   byte initialDuty;
 
-  byte unused15_110_256  [146];
+  byte unused15_110_256  [132];
 
 #if defined(CORE_AVR)
   };
