@@ -46,10 +46,10 @@ struct StepperIdle
 };
 
 struct table2D iacPWMTable;
-struct table2D iacStepTable;
+//struct table2D iacStepTable;
 struct table2D hbITPSTable;
 //Open loop tables specifically for cranking
-struct table2D iacCrankStepsTable;
+//struct table2D iacCrankStepsTable;
 struct table2D iacCrankDutyTable;
 struct table2D hbCrankPositionTable;
 
@@ -88,11 +88,12 @@ bool itpsIn;
 byte holdValue;
 byte lastValue;
 byte hbValue;
-//byte incrDuty;
+byte incrDuty;
 long idleLoad_value;
 long idle_target_itps;
 long idle_pid_itps_target_value;
-//long hb_idle_target;
+uint16_t idle_pidi_itps_target_value;
+uint16_t hb_idle_target;
 
 byte idleUpOutputHIGH = HIGH; // Used to invert the idle Up Output 
 byte idleUpOutputLOW = LOW;   // Used to invert the idle Up Output 

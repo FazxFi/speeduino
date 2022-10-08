@@ -465,8 +465,10 @@ void readITPS()
     //All checks below are reversed from the standard case above
     if (tempIADC > tempITPSMax) { tempIADC = tempITPSMax; }
     else if(tempIADC < tempITPSMin) { tempIADC = tempITPSMin; }
-    currentStatus.ITPS = map(tempIADC, tempITPSMin, tempITPSMax, 0, 200);
+    currentStatus.ITPS = map(tempIADC, tempITPSMin, tempITPSMax, 0, 200); //For .5 incrument out of 100 (0 - 200%)
   }
+
+  currentStatus.halfITPS = currentStatus.ITPS / 2; //devided by 2 out of 200
 
   //Check whether the closed throttle position sensor is active
   if(configPage2.CTPSEnabled == true)

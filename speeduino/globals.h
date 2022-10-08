@@ -647,7 +647,8 @@ struct statuses {
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
   byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
   byte TPSlast; /**< The previous TPS reading */
-  long ITPS;   /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  byte ITPS;   /**< The current ITPS reading (0% - 100%). Is the itpsADC value after the calibration is applied */
+  long halfITPS; /**< Convert from 0-200 to 0-100 */
   byte itpsADC; /**< 0-255 byte representation of the ITPS. Downsampled from the original 10-bit reading, but before any calibration is applied */
   byte ITPSlast;
   byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
