@@ -655,9 +655,9 @@ struct statuses {
   byte baro;   ///< Barometric pressure is simply the initial MAP reading, taken before the engine is running. Alternatively, can be taken from an external sensor
   byte TPS;    /**< The current TPS reading (0% - 100%). Is the tpsADC value after the calibration is applied */
   byte tpsADC; /**< byte (valued: 0-255) representation of the TPS. Downsampled from the original 10-bit (0-1023) reading, but before any calibration is applied */
-  byte tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Value is divided by 10 to be stored in a byte */
+  int16_t tpsDOT; /**< TPS delta over time. Measures the % per second that the TPS is changing. Note that is signed value, because TPSdot can be also negative */
   byte TPSlast; /**< The previous TPS reading */
-  byte mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Value is divided by 10 to be stored in a byte */
+  int16_t mapDOT; /**< MAP delta over time. Measures the kpa per second that the MAP is changing. Note that is signed value, because MAPdot can be also negative */
   volatile int rpmDOT; /**< RPM delta over time (RPM increase / s ?) */
   byte VE;     /**< The current VE value being used in the fuel calculation. Can be the same as VE1 or VE2, or a calculated value of both. */
   byte VE1;    /**< The VE value from fuel table 1 */
@@ -852,8 +852,8 @@ struct config2 {
   byte aeTaperMin;
   byte aeTaperMax;
 
-  byte iacCLminDuty;
-  byte iacCLmaxDuty;
+  byte iacCLminValue;
+  byte iacCLmaxValue;
   byte boostMinDuty;
 
   int8_t baroMin; //Must be signed
@@ -924,7 +924,7 @@ struct config2 {
   byte enableCluster2 : 1;
   byte unusedClusterBits : 4;
 
-  byte unused2_95;
+  byte decelAmount;
 
 #if defined(CORE_AVR)
   };
@@ -1376,7 +1376,9 @@ struct config10 {
   byte spark2InputPolarity : 1;
   byte spark2InputPullup : 1;
 
-  byte unused11_187_191[2]; //Bytes 187-191
+  byte oilPressureProtTime;
+
+  byte unused11_191_191; //Bytes 187-191
 
 #if defined(CORE_AVR)
   };
