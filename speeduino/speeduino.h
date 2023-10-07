@@ -13,51 +13,19 @@
 #define SPEEDUINO_H
 //#include "globals.h"
 
+#define CRANK_RUN_HYSTER    15
+
 void setup(void);
 void loop(void);
 uint16_t PW(int REQ_FUEL, byte VE, long MAP, uint16_t corrections, int injOpen);
 byte getVE1(void);
 byte getAdvance1(void);
-
-uint16_t calculateInjectorStartAngle(uint16_t PWdivTimerPerDegree, int16_t injChannelDegrees);
-void calculateIgnitionAngle1(int dwellAngle);
-void calculateIgnitionAngle2(int dwellAngle);
-void calculateIgnitionAngle3(int dwellAngle);
-void calculateIgnitionAngle3(int dwellAngle, int rotarySplitDegrees);
-void calculateIgnitionAngle4(int dwellAngle);
-void calculateIgnitionAngle4(int dwellAngle, int rotarySplitDegrees);
-void calculateIgnitionAngle5(int dwellAngle);
-void calculateIgnitionAngle6(int dwellAngle);
-void calculateIgnitionAngle7(int dwellAngle);
-void calculateIgnitionAngle8(int dwellAngle);
+void calculateStaging(uint32_t);
 void calculateIgnitionAngles(int dwellAngle);
+void checkLaunchAndFlatShift();
 
 extern uint16_t req_fuel_uS; /**< The required fuel variable (As calculated by TunerStudio) in uS */
 extern uint16_t inj_opentime_uS; /**< The injector opening time. This is set within Tuner Studio, but stored here in uS rather than mS */
-
-extern bool ignitionOn; /**< The current state of the ignition system (on or off) */
-extern bool fuelOn; /**< The current state of the fuel system (on or off) */
-
-extern byte curRollingCut; /**< Rolling rev limiter, current ignition channel being cut */
-extern byte rollingCutCounter; /**< how many times (revolutions) the ignition has been cut in a row */
-extern uint32_t rollingCutLastRev; /**< Tracks whether we're on the same or a different rev for the rolling cut */
-
-extern int channel1IgnDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually ALL engines, but there's some weird ones) */
-extern int channel2IgnDegrees; /**< The number of crank degrees until cylinder 2 (and 5/6/7/8) is at TDC */
-extern int channel3IgnDegrees; /**< The number of crank degrees until cylinder 3 (and 5/6/7/8) is at TDC */
-extern int channel4IgnDegrees; /**< The number of crank degrees until cylinder 4 (and 5/6/7/8) is at TDC */
-extern int channel5IgnDegrees; /**< The number of crank degrees until cylinder 5 is at TDC */
-extern int channel6IgnDegrees; /**< The number of crank degrees until cylinder 6 is at TDC */
-extern int channel7IgnDegrees; /**< The number of crank degrees until cylinder 7 is at TDC */
-extern int channel8IgnDegrees; /**< The number of crank degrees until cylinder 8 is at TDC */
-extern int channel1InjDegrees; /**< The number of crank degrees until cylinder 1 is at TDC (This is obviously 0 for virtually ALL engines, but there's some weird ones) */
-extern int channel2InjDegrees; /**< The number of crank degrees until cylinder 2 (and 5/6/7/8) is at TDC */
-extern int channel3InjDegrees; /**< The number of crank degrees until cylinder 3 (and 5/6/7/8) is at TDC */
-extern int channel4InjDegrees; /**< The number of crank degrees until cylinder 4 (and 5/6/7/8) is at TDC */
-extern int channel5InjDegrees; /**< The number of crank degrees until cylinder 5 is at TDC */
-extern int channel6InjDegrees; /**< The number of crank degrees until cylinder 6 is at TDC */
-extern int channel7InjDegrees; /**< The number of crank degrees until cylinder 7 is at TDC */
-extern int channel8InjDegrees; /**< The number of crank degrees until cylinder 8 is at TDC */
 
 /** @name Staging
  * These values are a percentage of the total (Combined) req_fuel value that would be required for each injector channel to deliver that much fuel.   

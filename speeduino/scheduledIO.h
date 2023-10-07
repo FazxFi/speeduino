@@ -3,29 +3,29 @@
 
 #include <Arduino.h>
 
-inline void openInjector1(void);
-inline void closeInjector1(void);
+void openInjector1(void);
+void closeInjector1(void);
 
-inline void openInjector2(void);
-inline void closeInjector2(void);
+void openInjector2(void);
+void closeInjector2(void);
 
-inline void openInjector3(void);
-inline void closeInjector3(void);
+void openInjector3(void);
+void closeInjector3(void);
 
-inline void openInjector4(void);
-inline void closeInjector4(void);
+void openInjector4(void);
+void closeInjector4(void);
 
-inline void openInjector5(void);
-inline void closeInjector5(void);
+void openInjector5(void);
+void closeInjector5(void);
 
-inline void openInjector6(void);
-inline void closeInjector6(void);
+void openInjector6(void);
+void closeInjector6(void);
 
-inline void openInjector7(void);
-inline void closeInjector7(void);
+void openInjector7(void);
+void closeInjector7(void);
 
-inline void openInjector8(void);
-inline void closeInjector8(void);
+void openInjector8(void);
+void closeInjector8(void);
 
 // These are for Semi-Sequential and 5 Cylinder injection
 void openInjector1and3(void);
@@ -63,34 +63,34 @@ void injector6Toggle(void);
 void injector7Toggle(void);
 void injector8Toggle(void);
 
-inline void beginCoil1Charge(void);
-inline void endCoil1Charge(void);
+void beginCoil1Charge(void);
+void endCoil1Charge(void);
 
-inline void beginCoil2Charge(void);
-inline void endCoil2Charge(void);
+void beginCoil2Charge(void);
+void endCoil2Charge(void);
 
-inline void beginCoil3Charge(void);
-inline void endCoil3Charge(void);
+void beginCoil3Charge(void);
+void endCoil3Charge(void);
 
-inline void beginCoil4Charge(void);
-inline void endCoil4Charge(void);
+void beginCoil4Charge(void);
+void endCoil4Charge(void);
 
-inline void beginCoil5Charge(void);
-inline void endCoil5Charge(void);
+void beginCoil5Charge(void);
+void endCoil5Charge(void);
 
-inline void beginCoil6Charge(void);
-inline void endCoil6Charge(void);
+void beginCoil6Charge(void);
+void endCoil6Charge(void);
 
-inline void beginCoil7Charge(void);
-inline void endCoil7Charge(void);
+void beginCoil7Charge(void);
+void endCoil7Charge(void);
 
-inline void beginCoil8Charge(void);
-inline void endCoil8Charge(void);
+void beginCoil8Charge(void);
+void endCoil8Charge(void);
 
 //The following functions are used specifically for the trailing coil on rotary engines. They are separate as they also control the switching of the trailing select pin
-inline void beginTrailingCoilCharge(void);
-inline void endTrailingCoilCharge1(void);
-inline void endTrailingCoilCharge2(void);
+void beginTrailingCoilCharge(void);
+void endTrailingCoilCharge1(void);
+void endTrailingCoilCharge2(void);
 
 //And the combined versions of the above for simplicity
 void beginCoil1and3Charge(void);
@@ -232,22 +232,22 @@ void tachoOutputOff(void);
 #define coil8Charging_DIRECT()      (configPage4.IgInv == GOING_HIGH ? coil8Low_DIRECT() : coil8High_DIRECT())
 #define coil8StopCharging_DIRECT()  (configPage4.IgInv == GOING_HIGH ? coil8High_DIRECT() : coil8Low_DIRECT())
 
-#define coil1Charging_MC33810()      coil1High_MC33810()
-#define coil1StopCharging_MC33810()  coil1Low_MC33810()
-#define coil2Charging_MC33810()      coil2High_MC33810()
-#define coil2StopCharging_MC33810()  coil2Low_MC33810()
-#define coil3Charging_MC33810()      coil3High_MC33810()
-#define coil3StopCharging_MC33810()  coil3Low_MC33810()
-#define coil4Charging_MC33810()      coil4High_MC33810()
-#define coil4StopCharging_MC33810()  coil4Low_MC33810()
-#define coil5Charging_MC33810()      coil5High_MC33810()
-#define coil5StopCharging_MC33810()  coil5Low_MC33810()
-#define coil6Charging_MC33810()      coil6High_MC33810()
-#define coil6StopCharging_MC33810()  coil6Low_MC33810()
-#define coil7Charging_MC33810()      coil7High_MC33810()
-#define coil7StopCharging_MC33810()  coil7Low_MC33810()
-#define coil8Charging_MC33810()      coil8High_MC33810()
-#define coil8StopCharging_MC33810()  coil8Low_MC33810()
+#define coil1Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil1Low_MC33810();  } else { coil1High_MC33810(); }
+#define coil1StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil1High_MC33810(); } else { coil1Low_MC33810();  }
+#define coil2Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil2Low_MC33810();  } else { coil2High_MC33810(); }
+#define coil2StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil2High_MC33810(); } else { coil2Low_MC33810();  }
+#define coil3Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil3Low_MC33810();  } else { coil3High_MC33810(); }
+#define coil3StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil3High_MC33810(); } else { coil3Low_MC33810();  }
+#define coil4Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil4Low_MC33810();  } else { coil4High_MC33810(); }
+#define coil4StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil4High_MC33810(); } else { coil4Low_MC33810();  }
+#define coil5Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil5Low_MC33810();  } else { coil5High_MC33810(); }
+#define coil5StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil5High_MC33810(); } else { coil5Low_MC33810();  }
+#define coil6Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil6Low_MC33810();  } else { coil6High_MC33810(); }
+#define coil6StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil6High_MC33810(); } else { coil6Low_MC33810();  }
+#define coil7Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil7Low_MC33810();  } else { coil7High_MC33810(); }
+#define coil7StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil7High_MC33810(); } else { coil7Low_MC33810();  }
+#define coil8Charging_MC33810()      if(configPage4.IgInv == GOING_HIGH) { coil8Low_MC33810();  } else { coil8High_MC33810(); }
+#define coil8StopCharging_MC33810()  if(configPage4.IgInv == GOING_HIGH) { coil8High_MC33810(); } else { coil8Low_MC33810();  }
 
 #define coil1Toggle_DIRECT() (*ign1_pin_port ^= ign1_pin_mask )
 #define coil2Toggle_DIRECT() (*ign2_pin_port ^= ign2_pin_mask )
@@ -268,5 +268,7 @@ void tachoOutputOff(void);
 #define injector8Toggle_DIRECT() (*inj8_pin_port ^= inj8_pin_mask )
 
 void nullCallback(void);
+
+typedef void (*voidVoidCallback)(void);
 
 #endif
