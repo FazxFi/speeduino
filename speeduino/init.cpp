@@ -1897,7 +1897,7 @@ void setPinMapping(byte boardID)
     
     case 15:
     #ifndef SMALL_FLASH_MODE //No support for bluepill here anyway
-      //Pin mappings as per the FazxFi PROTO2.0 board
+      //Pin mappings as per the FazxFi PROTO 2.0 board
       pinInjector1 =       5; //Output pin injector 1 is on
       pinInjector2 =       4; //Output pin injector 2 is on
       pinInjector3 =       3; //Output pin injector 3 is on
@@ -1911,14 +1911,12 @@ void setPinMapping(byte boardID)
       pinCoil5 =          47; //Pin for coil 5 PLACEHOLDER value for now
       pinTrigger =        19; //The CAS pin
       pinTrigger2 =       18; //The Cam Sensor pin
-      pinTrigger3 =       48; //The Cam sensor 2 pin
       pinTPS =            A2; //TPS input pin
       pinMAP =            A1; //MAP sensor pin
       pinIAT =            A4; //IAT sensor pin
       pinCLT =            A7; //CLS sensor pin
       pinO2 =             A5; //O2 Sensor pin
       pinBat =            A6; //Battery reference voltage pin
-      pinDisplayReset =   53; //OLED reset pin
       pinTachOut =        10; //Tacho output pin
       pinIdle1 =           6; //Single wire idle control
       pinIdle2 =           7; //2 wire idle control
@@ -1935,12 +1933,15 @@ void setPinMapping(byte boardID)
       pinResetControl =   52; //Reset control output
       pinBaro =           A0;
       pinVSS =            20;
-      pinWMIEmpty =       44;
-      pinWMIIndicator =   43;
-      pinWMIEnabled =     42;
+      pinSpareLOut1 =     26; //low current output spare 1
+      pinSpareLOut2 =     27; //low current output spare 2
       //FazXFi add-on
+      pinAirConRequest =  38; //AC request pin
       //pinITPS =         A3; //Idle position pin
       //pinCTS =          36; //Close throtlle pin
+      pinOilPressure =   A14; //Oil pressure pin
+      pinFuelPressure =  A15; //Fuel pressure pin
+      
 
     #endif
       break;
