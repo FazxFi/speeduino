@@ -1907,7 +1907,7 @@ void setPinMapping(byte boardID)
       pinCoil1 =          17; //Pin for coil 1
       pinCoil2 =          16; //Pin for coil 2
       pinCoil3 =          15; //Pin for coil 3
-      pinCoil4 =          14; //Pin for coil 4
+      pinCoil4 =          30; //Pin for coil 4
       pinCoil5 =          47; //Pin for coil 5 PLACEHOLDER value for now
       pinTrigger =        19; //The CAS pin
       pinTrigger2 =       18; //The Cam Sensor pin
@@ -1936,7 +1936,7 @@ void setPinMapping(byte boardID)
       pinSpareLOut1 =     26; //low current output spare 1
       pinSpareLOut2 =     27; //low current output spare 2
       //FazXFi add-on
-      pinAirConRequest =  38; //AC request pin
+      //pinAirConRequest =  38; //AC request pin
       //pinITPS =         A3; //Idle position pin
       //pinCTS =          36; //Close throtlle pin
       pinOilPressure =   A14; //Oil pressure pin
