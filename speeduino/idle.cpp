@@ -89,7 +89,8 @@ void initialiseIdle(bool forcehoming)
 
     case IAC_ALGORITHM_ONOFF:
       //Case 1 is on/off idle control
-      if ((currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET) < configPage6.iacFastTemp)
+      if ( ((currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET) < configPage6.iacFastTemp) || 
+          (configPage15.airConFastIdle == 1 && ( BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true ) ) )
       {
         IDLE_PIN_HIGH();
         idleOn = true;
@@ -438,7 +439,8 @@ void idleControl(void)
       break;
 
     case IAC_ALGORITHM_ONOFF:      //Case 1 is on/off idle control
-      if ( (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET) < configPage6.iacFastTemp) //All temps are offset by 40 degrees
+      if  ( ( (currentStatus.coolant + CALIBRATION_TEMPERATURE_OFFSET) < configPage6.iacFastTemp) || 
+          (configPage15.airConFastIdle == 1 && (BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true ) ) ) //All temps are offset by 40 degrees
       {
         IDLE_PIN_HIGH();
         idleOn = true;

@@ -3114,14 +3114,12 @@ void setPinMapping(byte boardID)
     }
   } 
 
-  if((pinAirConComp>0) && ((configPage15.airConEnable) == 1))
+  if(configPage15.airConEnable == 1 )
   {
     pinMode(pinAirConComp, OUTPUT);
-  }
-
-  if((pinAirConRequest > 0) && ((configPage15.airConEnable) == 1) && (!pinIsOutput(pinAirConRequest)))
-  {
-    if((configPage15.airConReqPol) == 1)
+	  pinMode(pinAirConFan, OUTPUT);
+	 
+    if(configPage15.airConReqPol == 1)
     {
       // Inverted
       // +5V is ON, Use external pull-down resistor for OFF
@@ -3130,14 +3128,9 @@ void setPinMapping(byte boardID)
     else
     {
       //Normal
-      // Pin pulled to Ground is ON. Floating (internally pulled up to +5V) is OFF.
+      //Pin pulled to Ground is ON. Floating (internally pulled up to +5V) is OFF.
       pinMode(pinAirConRequest, INPUT_PULLUP);
     }
-  }
-
-  if((pinAirConFan > 0) && ((configPage15.airConEnable) == 1) && ((configPage15.airConFanEnabled) == 1))
-  {
-    pinMode(pinAirConFan, OUTPUT);
   }  
 
   //These must come after the above pinMode statements
