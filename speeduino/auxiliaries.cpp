@@ -87,9 +87,7 @@ Air Conditioning Control
 */
 void initialiseAirCon(void)
 {
-  if( (configPage15.airConEnable) == 1 &&
-      pinAirConRequest != 0 &&
-      pinAirConComp != 0 )
+  if( (configPage15.airConEnable) == 1 )
   {
     // Hold the A/C off until a few seconds after cranking
     acAfterEngineStartDelay = 0;
@@ -113,7 +111,7 @@ void initialiseAirCon(void)
 
     AIRCON_OFF();
 
-    if((configPage15.airConFanEnabled > 0) && (pinAirConFan != 0))
+    if( configPage15.airConFanEnabled == 1 )
     {
       aircon_fan_pin_port = portOutputRegister(digitalPinToPort(pinAirConFan));
       aircon_fan_pin_mask = digitalPinToBitMask(pinAirConFan);
@@ -344,10 +342,8 @@ void fanControl(void)
     if ( configPage2.fanWhenOff == true) { fanPermit = true; }
     else { fanPermit = BIT_CHECK(currentStatus.engine, BIT_ENGINE_RUN); }
 
-    if ( (fanPermit == true) &&
-         ((currentStatus.coolant >= onTemp) || 
-           ((configPage15.airConTurnsFanOn) == 1 &&
-           BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true)) )
+    if ( (fanPermit == true) && 
+    ((currentStatus.coolant >= onTemp) || (configPage15.airConTurnsFanOn == 1 && BIT_CHECK(currentStatus.airConStatus, BIT_AIRCON_TURNING_ON) == true)) )
     {
       //Fan needs to be turned on - either by high coolant temp, or from an A/C request (to ensure there is airflow over the A/C radiator).
       if(BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK) && (configPage2.fanWhenCranking == 0))

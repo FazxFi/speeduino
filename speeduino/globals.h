@@ -1417,7 +1417,8 @@ struct config15 {
   byte airConTurnsFanOn : 1;
   byte airConFanEnabled : 1;
   byte airConFanPol : 1;
-  byte airConUnused1 : 2;
+  byte airConFastIdle : 1;
+  byte airConUnused1 : 1;
 
   //Bytes 84-97 - Air conditioning analog points
   byte airConCompPin : 6;
