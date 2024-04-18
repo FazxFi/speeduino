@@ -1936,9 +1936,10 @@ void setPinMapping(byte boardID)
       pinSpareLOut1 =     26; //low current output spare 1
       pinSpareLOut2 =     27; //low current output spare 2
       //FazXFi add-on
-      //pinAirConRequest =  38; //AC request pin
+      pinAirConRequest =  38; //AC request pin
+      pinAirConComp =     26; //AC compressor pin
+      pinAirConFan =      27; //AC Fan pin
       //pinITPS =         A3; //Idle position pin
-      //pinCTS =          36; //Close throtlle pin
       pinOilPressure =   A14; //Oil pressure pin
       pinFuelPressure =  A15; //Fuel pressure pin
       
