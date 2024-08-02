@@ -276,8 +276,10 @@
 #define EVEN_FIRE           0
 #define ODD_FIRE            1
 
-#define EGO_ALGORITHM_SIMPLE  0
-#define EGO_ALGORITHM_PID     2
+#define EGO_ALGORITHM_SIMPLE   0U
+#define EGO_ALGORITHM_INVALID1 1U
+#define EGO_ALGORITHM_PID      2U
+#define EGO_ALGORITHM_NONE     3U
 
 #define STAGING_MODE_TABLE  0
 #define STAGING_MODE_AUTO   1
@@ -524,7 +526,7 @@ extern byte triggerInterrupt3;
 extern byte fpPrimeTime; //The time (in seconds, based on currentStatus.secl) that the fuel pump started priming
 extern uint8_t softLimitTime; //The time (in 0.1 seconds, based on seclx10) that the soft limiter started
 extern volatile uint16_t mainLoopCount;
-extern unsigned long revolutionTime; //The time in uS that one revolution would take at current speed (The time tooth 1 was last seen, minus the time it was seen prior to that)
+extern uint32_t revolutionTime; //The time in uS that one revolution would take at current speed (The time tooth 1 was last seen, minus the time it was seen prior to that)
 extern volatile unsigned long timer5_overflow_count; //Increments every time counter 5 overflows. Used for the fast version of micros()
 extern volatile unsigned long ms_counter; //A counter that increments once per ms
 extern uint16_t fixedCrankingOverride;
@@ -872,6 +874,13 @@ struct config2 {
 #else
   } __attribute__((__packed__)); //The 32 bit systems require all structs to be fully packed
 #endif
+
+#define IDLEADVANCE_MODE_OFF      0U
+#define IDLEADVANCE_MODE_ADDED    1U
+#define IDLEADVANCE_MODE_SWITCHED 2U
+
+#define IDLEADVANCE_ALGO_TPS      0U
+#define IDLEADVANCE_ALGO_CTPS     1U
 
 /** Page 4 of the config - variables required for ignition and rpm/crank phase /cam phase decoding.
 * See the ini file for further reference.
