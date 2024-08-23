@@ -174,7 +174,7 @@ void initialiseAll(void)
     else { setPinMapping(configPage2.pinMapping); }
 
     // Repeatedly initialising the CAN bus hangs the system when
-    // running initialsation tests on Teensy 3.5
+    // running initialisation tests on Teensy 3.5
     #if defined(NATIVE_CAN_AVAILABLE) && !defined(UNIT_TEST)
       initCAN();
     #endif
@@ -2129,7 +2129,7 @@ void setPinMapping(byte boardID)
       pinIdle2 = 14; //2 wire idle control PLACEHOLDER value for now
       pinFuelPump = 3; //Fuel pump output
       pinVVT_1 = 15; //Default VVT output PLACEHOLDER value for now
-      pinBoost = 13; //Boost control
+      pinBoost = 5; //Boost control
       pinSpareLOut1 = 49; //enable Wideband Lambda Heater
       pinSpareLOut2 = 16; //low current output spare2 PLACEHOLDER value for now
       pinSpareLOut3 = 17; //low current output spare3 PLACEHOLDER value for now
