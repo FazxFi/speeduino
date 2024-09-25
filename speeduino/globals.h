@@ -174,6 +174,7 @@
 #define BIT_TIMER_10HZ            2
 #define BIT_TIMER_15HZ            3
 #define BIT_TIMER_30HZ            4
+#define BIT_TIMER_50HZ            5
 #define BIT_TIMER_200HZ           6
 #define BIT_TIMER_1KHZ            7
 
@@ -208,10 +209,12 @@
 #define VALID_MAP_MIN 2 //The smallest ADC value that is valid for the MAP sensor
 
 #ifndef UNIT_TEST 
-#define TOOTH_LOG_SIZE      127
+#define TOOTH_LOG_SIZE      127U
 #else
-#define TOOTH_LOG_SIZE      1
+#define TOOTH_LOG_SIZE      1U
 #endif
+// Some code relies on TOOTH_LOG_SIZE being uint8_t.
+static_assert(TOOTH_LOG_SIZE<UINT8_MAX, "Check all uses of TOOTH_LOG_SIZE");
 
 #define O2_CALIBRATION_PAGE   2U
 #define IAT_CALIBRATION_PAGE  1U
@@ -330,10 +333,10 @@
 #define SPARK2_CONDITION_TPS 2
 #define SPARK2_CONDITION_ETH 3
 
-#define RESET_CONTROL_DISABLED             0
-#define RESET_CONTROL_PREVENT_WHEN_RUNNING 1
-#define RESET_CONTROL_PREVENT_ALWAYS       2
-#define RESET_CONTROL_SERIAL_COMMAND       3
+#define RESET_CONTROL_DISABLED             0U
+#define RESET_CONTROL_PREVENT_WHEN_RUNNING 1U
+#define RESET_CONTROL_PREVENT_ALWAYS       2U
+#define RESET_CONTROL_SERIAL_COMMAND       3U
 
 #define OPEN_LOOP_BOOST     0
 #define CLOSED_LOOP_BOOST   1
@@ -862,8 +865,8 @@ struct config2 {
   byte idleAdvVss;
   byte mapSwitchPoint;
 
-  byte canBMWCluster : 1;
-  byte canVAGCluster : 1;
+  byte unused1_126_1 : 1;
+  byte unused1_126_2 : 1;
   byte canWBO : 2 ;
   byte vssAuxCh : 4;
 
@@ -972,7 +975,8 @@ struct config4 {
   byte vvt2PWMdir : 1;
   byte inj4cylPairing : 2;
   byte dwellErrCorrect : 1;
-  byte unusedBits4 : 4;
+  byte CANBroadcastProtocol : 3;
+  byte unusedBits4 : 1;
   byte ANGLEFILTER_VVT;
   byte FILTER_FLEX;
   byte vvtMinClt;
@@ -1339,9 +1343,11 @@ struct config10 {
   byte spark2InputPolarity : 1;
   byte spark2InputPullup : 1;
 
+  //Byte 190
   byte oilPressureProtTime;
 
-  byte unused11_191_191;
+  //Byte 191
+  byte lnchCtrlVss;
 
 #if defined(CORE_AVR)
   };

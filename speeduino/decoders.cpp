@@ -392,13 +392,34 @@ static __attribute__((noinline)) uint16_t stdGetRPM(bool isCamTeeth)
  * Sets the new filter time based on the current settings.
  * This ONLY works for even spaced decoders.
  */
-static inline void setFilter(unsigned long curGap)
+static void setFilter(unsigned long curGap)
 {
+  /*
   if(configPage4.triggerFilter == 0) { triggerFilterTime = 0; } //trigger filter is turned off.
   else if(configPage4.triggerFilter == 1) { triggerFilterTime = curGap >> 2; } //Lite filter level is 25% of previous gap
   else if(configPage4.triggerFilter == 2) { triggerFilterTime = curGap >> 1; } //Medium filter level is 50% of previous gap
   else if (configPage4.triggerFilter == 3) { triggerFilterTime = (curGap * 3) >> 2; } //Aggressive filter level is 75% of previous gap
   else { triggerFilterTime = 0; } //trigger filter is turned off.
+  */
+
+  switch(configPage4.triggerFilter)
+  {
+    case TRIGGER_FILTER_OFF: 
+      triggerFilterTime = 0;
+      break;
+    case TRIGGER_FILTER_LITE: 
+      triggerFilterTime = curGap >> 2;
+      break;
+    case TRIGGER_FILTER_MEDIUM: 
+      triggerFilterTime = curGap >> 1;
+      break;
+    case TRIGGER_FILTER_AGGRESSIVE: 
+      triggerFilterTime = (curGap * 3) >> 2;
+      break;
+    default:
+      triggerFilterTime = 0;
+      break;
+  }
 }
 
 /**
@@ -862,7 +883,7 @@ void triggerSetup_DualWheel(void)
 {
   triggerToothAngle = 360 / configPage4.triggerTeeth; //The number of degrees that passes from tooth to tooth
   if(configPage4.TrigSpeed == CAM_SPEED) { triggerToothAngle = 720 / configPage4.triggerTeeth; } //Account for cam speed
-  toothCurrentCount = 255; //Default value
+  toothCurrentCount = UINT8_MAX; //Default value
   triggerFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * configPage4.triggerTeeth)); //Trigger filter time is the shortest possible time (in uS) that there can be between crank teeth (ie at max RPM). Any pulses that occur faster than this time will be discarded as noise
   triggerSecFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * 2U)) / 2U; //Same as above, but fixed at 2 teeth on the secondary input and divided by 2 (for cam speed)
   BIT_CLEAR(decoderState, BIT_DECODER_2ND_DERIV);
@@ -909,12 +930,14 @@ void triggerPri_DualWheel(void)
       if( (configPage2.perToothIgn == true) && (!BIT_CHECK(currentStatus.engine, BIT_ENGINE_CRANK)) ) 
       {
         int16_t crankAngle = ( (toothCurrentCount-1) * triggerToothAngle ) + configPage4.triggerAngle;
+        uint16_t currentTooth;
         if( (configPage4.sparkMode == IGN_MODE_SEQUENTIAL) && (revolutionOne == true) && (configPage4.TrigSpeed == CRANK_SPEED) )
         {
           crankAngle += 360;
-          checkPerToothTiming(crankAngle, (configPage4.triggerTeeth + toothCurrentCount)); 
+          currentTooth = (configPage4.triggerTeeth + toothCurrentCount); 
         }
-        else{ checkPerToothTiming(crankAngle, toothCurrentCount); }
+        else{ currentTooth = toothCurrentCount; }
+        checkPerToothTiming(crankAngle, currentTooth);
       }
    } //Trigger filter
 }
@@ -1121,8 +1144,9 @@ void triggerPri_BasicDistributor(void)
     {
       int16_t crankAngle = ( (toothCurrentCount-1) * triggerToothAngle ) + configPage4.triggerAngle;
       crankAngle = ignitionLimits((crankAngle));
-      if(toothCurrentCount > (triggerActualTeeth/2) ) { checkPerToothTiming(crankAngle, (toothCurrentCount - (triggerActualTeeth/2))); }
-      else { checkPerToothTiming(crankAngle, toothCurrentCount); }
+      uint16_t currentTooth = toothCurrentCount;
+      if(toothCurrentCount > (triggerActualTeeth/2) ) { currentTooth = (toothCurrentCount - (triggerActualTeeth/2)); }
+      checkPerToothTiming(crankAngle, currentTooth);
     }
 
     toothLastMinusOneToothTime = toothLastToothTime;
@@ -2053,7 +2077,7 @@ void triggerSetEndTeeth_Jeep2000(void)
 void triggerSetup_Audi135(void)
 {
   triggerToothAngle = 8; //135/3 = 45, 360/45 = 8 degrees every 3 teeth
-  toothCurrentCount = 255; //Default value
+  toothCurrentCount = UINT8_MAX; //Default value
   toothSystemCount = 0;
   triggerFilterTime = (unsigned long)(MICROS_PER_SEC / (MAX_RPM / 60U * 135UL)); //Trigger filter time is the shortest possible time (in uS) that there can be between crank teeth (ie at max RPM). Any pulses that occur faster than this time will be discarded as noise
   triggerSecFilterTime = (int)(MICROS_PER_SEC / (MAX_RPM / 60U * 2U)) / 2U; //Same as above, but fixed at 2 teeth on the secondary input and divided by 2 (for cam speed)
@@ -2332,7 +2356,7 @@ void triggerPri_HondaJ32(void)
       // Teeth 14 and 22 are about 18 rather than 15 degrees so don't update last_gap with this unusual spacing
       lastGap = curGap;
     }
-    // else toothCurrentCount == 14 or 22.  Take no futher action. 
+    // else toothCurrentCount == 14 or 22.  Take no further action. 
   }
   else // we do not have sync yet. While syncing, treat tooth 14 and 22 as normal teeth
   {
@@ -2835,7 +2859,7 @@ There can be no missing teeth on the primary wheel.
 void triggerSetup_non360(void)
 {
   triggerToothAngle = (360U * configPage4.TrigAngMul) / configPage4.triggerTeeth; //The number of degrees that passes from tooth to tooth multiplied by the additional multiplier
-  toothCurrentCount = 255; //Default value
+  toothCurrentCount = UINT8_MAX; //Default value
   triggerFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * configPage4.triggerTeeth)); //Trigger filter time is the shortest possible time (in uS) that there can be between crank teeth (ie at max RPM). Any pulses that occur faster than this time will be discarded as noise
   triggerSecFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * 2U)) / 2U; //Same as above, but fixed at 2 teeth on the secondary input and divided by 2 (for cam speed)
   BIT_CLEAR(decoderState, BIT_DECODER_2ND_DERIV);
@@ -4459,7 +4483,7 @@ void triggerSetup_DRZ400(void)
 {
   triggerToothAngle = 360 / configPage4.triggerTeeth; //The number of degrees that passes from tooth to tooth
   if(configPage4.TrigSpeed == 1) { triggerToothAngle = 720 / configPage4.triggerTeeth; } //Account for cam speed
-  toothCurrentCount = 255; //Default value
+  toothCurrentCount = UINT8_MAX; //Default value
   triggerFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * configPage4.triggerTeeth)); //Trigger filter time is the shortest possible time (in uS) that there can be between crank teeth (ie at max RPM). Any pulses that occur faster than this time will be discarded as noise
   triggerSecFilterTime = (MICROS_PER_SEC / (MAX_RPM / 60U * 2U)); //Same as above, but fixed at 2 teeth on the secondary input
   BIT_CLEAR(decoderState, BIT_DECODER_2ND_DERIV);
@@ -4970,7 +4994,7 @@ void triggerPri_Vmax(void)
 void triggerSec_Vmax(void)
 // Needs to be enabled in main()
 {
-  return;// No need for now. The only thing it could help to sync more quikly or confirm position.
+  return;// No need for now. The only thing it could help to sync more quickly or confirm position.
 } // End Sec Trigger
 
 
